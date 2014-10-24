@@ -1,4 +1,3 @@
-// main package
 package main
 
 import (
@@ -184,9 +183,28 @@ func (pla *PLA) converge() int {
 			break
 		}
 		//pla.print()
-		iterations += 1
+		iterations++
 	}
 	return iterations
+}
+
+func (pla *PLA) disagreement() float64 {
+
+	outOfSample := 1000
+	numError := 0
+
+	for i := 0; i < outOfSample; i++ {
+		var oX point
+		var oY int
+		oX[0] = float64(1)
+		oX[1] = pla.Interval.randFloat()
+		oX[2] = pla.Interval.randFloat()
+		oY = evaluate(pla.RandLinearVars.Func(), oX)
+		if pla.H(oX, pla.Wn) != oY {
+			numError++
+		}
+	}
+	return float64(numError) / float64(outOfSample)
 }
 
 // print will display the current random function and the current data hold by vectors Xn, Yn and Wn.
@@ -205,17 +223,42 @@ func (pla *PLA) print() {
 // converge for N = 10 training points?
 func q7() {
 
-	avgIterations := 0 // averable of iterations that it takes for the PLA to converge
-	runs := 1000       // number of times we repeat the experiment
+	avgIterations := 0            // average of iterations that it takes for the PLA to converge
+	avgDisagreement := float64(0) // average of disagreement between g (h function with Wn vector) and f
+	runs := 1000                  // number of times we repeat the experiment
+	r = rand.New(rand.NewSource(time.Now().UnixNano()))
+	pla := NewPLA()
+
 	for run := 0; run < runs; run++ {
-		r = rand.New(rand.NewSource(time.Now().UnixNano()))
-		pla := NewPLA()
 		pla.initialize()
 		iterations := pla.converge()
+		avgDisagreement += pla.disagreement()
 		avgIterations += iterations
 	}
 	avgIterations = avgIterations / runs
+	avgDisagreement = avgDisagreement / float64(runs)
 	fmt.Printf("average for PLA to converge for N = 10 is %v\n", avgIterations)
+	fmt.Printf("average of disagreement between the hypothesis function and the random function is %4.2f\n", avgDisagreement)
+}
+
+func q9() {
+	avgIterations := 0            // average of iterations that it takes for the PLA to converge
+	avgDisagreement := float64(0) // average of disagreement between g (h function with Wn vector) and f
+	runs := 1000                  // number of times we repeat the experiment
+	r = rand.New(rand.NewSource(time.Now().UnixNano()))
+	pla := NewPLA()
+	for run := 0; run < runs; run++ {
+		pla.N = 100
+		pla.initialize()
+		iterations := pla.converge()
+		avgDisagreement += pla.disagreement()
+		avgIterations += iterations
+	}
+	avgIterations = avgIterations / runs
+	avgDisagreement = avgDisagreement / float64(runs)
+	fmt.Printf("average for PLA to converge for N = %v is %v\n", pla.N, avgIterations)
+	fmt.Printf("average of disagreement between the hypothesis function and the random function for N = %v is %4.2f\n", pla.N, avgDisagreement)
+
 }
 
 func main() {
@@ -226,7 +269,11 @@ func main() {
 	fmt.Println("4 b")
 	fmt.Println("5 c")
 	fmt.Println("6 e")
-	// 7: perceptron learning algorithm
+	// perceptron learning algorithm
 	q7()
 	fmt.Println("7 b")
+	fmt.Println("8 c")
+	q9()
+	fmt.Println("9 b")
+	fmt.Println("10 b")
 }
