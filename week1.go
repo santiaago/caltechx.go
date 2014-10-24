@@ -1,61 +1,79 @@
+// main package
 package main
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"time"
 )
 
-// type point struct {
-// 	x0 float64 // artificial coordinate for the perceptron learning algorithm
-// 	x  float64
-// 	y  float64
-// }
+// r is a random variable used to generate random points through the program.
+var r *rand.Rand
 
-type linear_function struct {
-	a float64
-	b float64
+type interval struct {
+	min int
+	max int
 }
 
-type linear_func func(x float64) float64
-
-// computes a random number in a given interval
-func randInInterval(min int, max int) float64 {
+// randFloat returns a random float number in the given interval.
+func (v *interval) randFloat() float64 {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	size := float64(max - min)
-	return r.Float64()*size + float64(min)
+	size := float64(v.max - v.min)
+	return r.Float64()*size + float64(v.min)
 }
 
-func randLine() linear_function {
-	a := randInInterval(-1, 1)
-	b := randInInterval(-1, 1)
-	return linear_function{a, b}
+// linearsVars holds the variables that define a linear function.
+type linearVars struct {
+	a float64 // slope
+	b float64 // intercept
 }
 
-func (l *linear_function) getFunc() linear_func {
+// randLinearVars returns a linearVars struct which holds the random variables of the linear function.
+func randLinearVars(i interval) linearVars {
+	return linearVars{i.randFloat(), i.randFloat()}
+}
+
+// linearFunc is a linear function that takes a float x and returns y = ax + b.
+// f(x) = y
+type linearFunc func(x float64) float64
+
+// Func returns a linear function with respect of the defined linearVars.
+// f(x) = ax + b
+// With a and b defined by linearVars.
+func (l *linearVars) Func() linearFunc {
 	return func(x float64) float64 {
 		return x*l.a + l.b
 	}
 }
 
-func (l *linear_function) print() {
-	fmt.Printf("func: %vX + %v\n", l.a, l.b)
+// Print will print the linear variables in the following form:
+// func: aX + b
+func (l *linearVars) Print() {
+	fmt.Printf("func: %4.2fX + %4.2f\n", l.a, l.b)
 }
 
+// point is a 2 dimentional coordinate (x1 x2).
+// with an additional x0 coordinate for the perceptron algorithm.
 type point [3]float64
 
-func (pt *point) print() {
+// print will print the coordinates of pt in the following format:
+// point: x0:%4.2f \tx1:%4.2f \tx2:%4.2f\n
+func (pt *point) print(name string) {
 	p := *pt
-	fmt.Printf("point: x0:%v \tx1:%v \tx2:%v\n", p[0], p[1], p[2])
+	fmt.Printf("\t%s0: %4.2f \t%s1: %4.2f \t%s2: %4.2f\t", name, p[0], name, p[1], name, p[2])
 }
 
-func evaluate(f linear_func, p point) int {
+// evaluate will compare the function f in point p with respect to the current y point.
+// if it stands on one side it returns +1 else returns -1
+func evaluate(f linearFunc, p point) int {
 	if p[2] < f(p[1]) {
 		return -1
 	}
 	return 1
 }
 
+// sign returns 1 if number is > than 0 and -1 otherwise
 func sign(p float64) int {
 	if p > float64(0) {
 		return 1
@@ -63,7 +81,9 @@ func sign(p float64) int {
 	return -1
 }
 
-// perceptron implements h(x) = sign(w'x)
+// Hypothesis function h is the hypothesis of the perceptron algorithm.
+// It takes as arguments vector X and a vector W (w for weight)
+// function h implements h(x) = sign(w'x)
 func h(x point, w point) int {
 	if len(x) != len(w) {
 		fmt.Println("Panic: vectors x and w should be of same size.")
@@ -76,15 +96,126 @@ func h(x point, w point) int {
 	return sign(res)
 }
 
-// build misclassified set.
-func build_misclassified_set(Xn []point, Yn []int, Wn []point) []int {
+// extract a misclassified set of indexes from the training set, output and weight vector.
+func (pla *PLA) extractMisclassifiedIndexes() []int {
 	var set []int
-	for i := 0; i < len(Wn); i++ {
-		if h(Xn[i], Wn[i]) != Yn[i] {
-			set = append(set, i) //set.Append(i)
+	for i := 0; i < len(pla.Xn); i++ {
+		if pla.H(pla.Xn[i], pla.Wn) != pla.Yn[i] {
+			set = append(set, i)
 		}
 	}
 	return set
+}
+
+// PLA holds all the information needed to run the PLA algorithm.
+type PLA struct {
+	N              int                        // number of training points
+	Interval       interval                   // interval  in which the points, outputs and function are defined.
+	RandLinearVars linearVars                 // random vars of random linear function
+	Xn             []point                    // data set of random points (uniformly in interval)
+	Yn             []int                      // output, evaluation of each Xn based on linear function defined by RandLinearVars
+	Wn             point                      // weight vector initialized at zeros.
+	H              func(x point, w point) int // hypothesis function.
+}
+
+// NewPLA is a constructor of a basic PLA:
+// N = 10
+// Interval [-1 : 1]
+// H = h(x) = sign(w'x)
+func NewPLA() *PLA {
+	pla := PLA{}
+	pla.N = 10
+	pla.Interval = interval{-1, 1}
+	pla.H = h
+	return &pla
+}
+
+// updateWeight will update Wn vector with respect to Yn and Xn
+func (pla *PLA) updateWeight(n int) {
+	for i := 0; i < len(pla.Wn); i++ {
+		pla.Wn[i] = pla.Wn[i] + float64(pla.Yn[n])*pla.Xn[n][i]
+	}
+}
+
+// randMisclassifiedPoint will pick a point at random from the misclassified set.
+func (pla *PLA) randMisclassifiedPoint() (int, error) {
+	// build the misclassified set:
+	indexes := pla.extractMisclassifiedIndexes()
+	if len(indexes) == 0 {
+		return 0, errors.New("missclassified set is empty.")
+	}
+	// pick a misclasified point from the set
+	rand_index := r.Intn(len(indexes))
+	rand_point := indexes[rand_index]
+	return rand_point, nil
+}
+
+// initialize will set up the PLA structure with the following:
+// - the random linear function
+// - vector Xn with X0 at 1 and X1 and X2 random point in the defined input space.
+// - vector Yn the output of the random linear function on each point Xi. either -1 or +1  based on the linear function.
+// - vector Wn is set to zero.
+//
+func (pla *PLA) initialize() {
+
+	pla.RandLinearVars = randLinearVars(pla.Interval) // create the random vars of the random linear function
+	pla.Xn = make([]point, pla.N)
+	pla.Yn = make([]int, pla.N)
+	pla.Wn[0] = float64(0)
+	pla.Wn[1] = float64(0)
+	pla.Wn[2] = float64(0)
+
+	for i := 0; i < pla.N; i++ {
+		pla.Xn[i][0] = float64(1)
+		pla.Xn[i][1] = pla.Interval.randFloat()
+		pla.Xn[i][2] = pla.Interval.randFloat()
+
+		pla.Yn[i] = evaluate(pla.RandLinearVars.Func(), pla.Xn[i])
+	}
+}
+
+func (pla *PLA) converge() int {
+	iterations := 0
+	for {
+		// pick a misclassified point and update the weight vector accordingly
+		if randPoint, err := pla.randMisclassifiedPoint(); err == nil {
+			pla.updateWeight(randPoint)
+		} else {
+			break
+		}
+		//pla.print()
+		iterations += 1
+	}
+	return iterations
+}
+
+// print will display the current random function and the current data hold by vectors Xn, Yn and Wn.
+func (pla *PLA) print() {
+	pla.RandLinearVars.Print()
+	for i := 0; i < pla.N; i++ {
+		pla.Xn[i].print("X")
+		fmt.Printf("\t Y: %v\n", pla.Yn[i])
+	}
+	fmt.Println()
+	pla.Wn.print("W")
+	fmt.Println()
+}
+
+// Take N = 10. How many iterations does it take on average for the PLA to
+// converge for N = 10 training points?
+func q7() {
+
+	avgIterations := 0 // averable of iterations that it takes for the PLA to converge
+	runs := 1000       // number of times we repeat the experiment
+	for run := 0; run < runs; run++ {
+		r = rand.New(rand.NewSource(time.Now().UnixNano()))
+		pla := NewPLA()
+		pla.initialize()
+		iterations := pla.converge()
+		avgIterations += iterations
+	}
+	avgIterations = avgIterations / runs
+	fmt.Printf("average for PLA to converge for N = 10 is %v\n", avgIterations)
 }
 
 func main() {
@@ -96,50 +227,6 @@ func main() {
 	fmt.Println("5 c")
 	fmt.Println("6 e")
 	// 7: perceptron learning algorithm
-	fmt.Println(randInInterval(-1, 1))
-	f := randLine()
-	f.print()
-	//var Xn [10]point //[3]float64
-	Xn := make([]point, 10)
-	Yn := make([]int, 10)
-	Wn := make([]point, 10)
-	for i := 0; i < 10; i++ {
-		//Wn[i] = point{0, 0, 0} no need to do this as it is automatically set to zero.
-		Xn[i][0] = float64(1)
-		Xn[i][1] = randInInterval(-1, 1)
-		Xn[i][2] = randInInterval(-1, 1)
-		Xn[i].print()
-		Yn[i] = evaluate(f.getFunc(), Xn[i])
-	}
-
-	for i := 0; i < 10; i++ {
-		fmt.Printf("Y%v : %v\n", i, Yn[i])
-	}
-
-	n_iterations := 0
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	for {
-		fmt.Printf("iteration #%v\n", n_iterations)
-		// pick a misclasified number
-		// first build a misclassified set:
-		misclasified_set := build_misclassified_set(Xn, Yn, Wn)
-		fmt.Println("number of misclassified points: ", len(misclasified_set))
-		for i := 0; i < len(Wn); i++ {
-			fmt.Printf("W0: %v \t W1: %v \t W2: %v\n", Wn[0], Wn[1], Wn[2])
-		}
-		if len(misclasified_set) == 0 {
-			break
-		}
-		rand_point := r.Intn(len(misclasified_set))
-		// update the weight vector:
-		// w <-- w + YnXn
-		Wn[rand_point][0] = Wn[rand_point][0] + float64(Yn[rand_point])*Xn[rand_point][0]
-		Wn[rand_point][1] = Wn[rand_point][1] + float64(Yn[rand_point])*Xn[rand_point][1]
-		Wn[rand_point][2] = Wn[rand_point][2] + float64(Yn[rand_point])*Xn[rand_point][2]
-
-		n_iterations += 1
-		if n_iterations > 10 {
-			break
-		}
-	}
+	q7()
+	fmt.Println("7 b")
 }
