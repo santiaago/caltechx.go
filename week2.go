@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/santiaago/caltechx.go/linreg"
 	"math"
 	"math/rand"
 	"runtime"
@@ -124,6 +125,23 @@ func q1ll() {
 	fmt.Printf("q1 parallel took %4.2f seconds\n", elapsed.Seconds())
 }
 
+func q5() {
+	runs := 1000 // number of times we repeat the experiment
+	linreg := linreg.NewLinearRegression()
+	var avgEin, avgEout float64
+
+	for run := 0; run < runs; run++ {
+		linreg.Initialize()
+		linreg.Learn()
+		avgEin += linreg.Ein()
+		avgEout += linreg.Eout()
+	}
+	avgEin = avgEin / runs
+	avgEin = avgEin / runs
+	fmt.Printf("average of In sample error 'Ein' for Linear regresion for N = 100 is %v\n", avgEin)
+	fmt.Printf("average of Out of sample error 'Eout' for Linear regresion for N = 100 is %v\n", avgEout)
+}
+
 func main() {
 	fmt.Println("Num CPU: ", runtime.NumCPU())
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -134,6 +152,7 @@ func main() {
 	fmt.Println("2 d")
 	fmt.Println("3 e")
 	fmt.Println("4 b")
+	q5()
 	fmt.Println("5 ")
 	fmt.Println("6 ")
 	fmt.Println("7 ")
