@@ -64,7 +64,7 @@ func q1() {
 	fmt.Printf("q1 took %4.2f seconds\n", elapsed.Seconds())
 }
 
-func q1ll() {
+func q1cc() {
 
 	start := time.Now()
 
@@ -122,7 +122,7 @@ func q1ll() {
 	fmt.Printf("V1: %4.2f\nVRand: %4.2f\nVMin: %4.2f\n", e.AvgV1, e.AvgVRand, e.AvgVMin)
 
 	elapsed := time.Since(start)
-	fmt.Printf("q1 parallel took %4.2f seconds\n", elapsed.Seconds())
+	fmt.Printf("q1 concurrent took %4.2f seconds\n", elapsed.Seconds())
 }
 
 func q5() {
@@ -147,7 +147,7 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	fmt.Println("week 2")
 	//q1()
-	//q1ll()
+	//q1cc()
 	fmt.Println("1 b")
 	fmt.Println("2 d")
 	fmt.Println("3 e")
