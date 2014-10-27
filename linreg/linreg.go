@@ -167,7 +167,21 @@ func (linreg *LinearRegression) Eout() float64 {
 		for j := 1; j < len(oX); j++ {
 			oX[j] = linreg.Interval.RandFloat()
 		}
-		oY = evaluate(linreg.TargetFunction, oX)
+		flip := 1
+		if linreg.Noise != 0 {
+			r := rand.New(rand.NewSource(time.Now().UnixNano()))
+			rN := r.Intn(100)
+			if rN < int(math.Ceil(linreg.Noise*100)) {
+				flip = -1
+			}
+		}
+		// output with potential noise in 'flip' variable
+		if !linreg.TwoParams {
+			oY = evaluate(linreg.TargetFunction, oX) * flip
+		} else {
+			oY = evaluateTwoParams(linreg.TargetFunction, oX) * flip
+		}
+
 		gi := float64(0)
 		for j := 0; j < len(oX); j++ {
 			gi += oX[j] * linreg.Wn[j]
@@ -208,6 +222,38 @@ func (linreg *LinearRegression) CompareInSample(f linear.LinearFunc, nParams int
 		}
 	}
 	return float64(diff) / float64(len(linreg.Xn))
+}
+
+// CompareOutOfSample will compare the current hypothesis function learn by linear regression whith respect to 'f' out of sample
+func (linreg *LinearRegression) CompareOutOfSample(f linear.LinearFunc, nParams int) float64 {
+
+	outOfSample := 1000
+	diff := 0
+
+	for i := 0; i < outOfSample; i++ {
+		//var oY int
+		oX := make([]float64, linreg.VectorSize)
+		oX[0] = float64(1)
+		for j := 1; j < len(oX); j++ {
+			oX[j] = linreg.Interval.RandFloat()
+		}
+
+		gi := float64(0)
+		for j := 0; j < len(oX); j++ {
+			gi += oX[j] * linreg.Wn[j]
+		}
+		if nParams == 2 {
+			if linear.Sign(gi) != int(f(oX[1], oX[2])) {
+				diff++
+			}
+		} else if nParams == 1 {
+			if linear.Sign(gi) != int(f(oX[1])) {
+				diff++
+			}
+		}
+	}
+
+	return float64(diff) / float64(outOfSample)
 }
 
 type transformFunc func([]float64) []float64

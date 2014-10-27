@@ -246,30 +246,59 @@ func q9() {
 	linreg.RandomTargetFunction = false
 	linreg.TwoParams = true
 	linreg.Noise = 0.1
-	var aAvg, bAvg, cAvg, dAvg, eAvg float64
+	var aAvgIn, bAvgIn, cAvgIn, dAvgIn, eAvgIn float64
+	var aAvgOut, bAvgOut, cAvgOut, dAvgOut, eAvgOut float64
+
+	var AvgEout float64
 	for run := 0; run < runs; run++ {
 
 		linreg.TargetFunction = f //non linear function
 		linreg.Initialize()
 		linreg.TransformDataSet(nonLinearFeature, 6)
 		linreg.Learn()
-		aAvg += linreg.CompareInSample(a, 2)
-		bAvg += linreg.CompareInSample(b, 2)
-		cAvg += linreg.CompareInSample(c, 2)
-		dAvg += linreg.CompareInSample(d, 2)
-		eAvg += linreg.CompareInSample(e, 2)
+
+		aAvgIn += linreg.CompareInSample(a, 2)
+		bAvgIn += linreg.CompareInSample(b, 2)
+		cAvgIn += linreg.CompareInSample(c, 2)
+		dAvgIn += linreg.CompareInSample(d, 2)
+		eAvgIn += linreg.CompareInSample(e, 2)
+
+		aAvgOut += linreg.CompareOutOfSample(a, 2)
+		bAvgOut += linreg.CompareOutOfSample(b, 2)
+		cAvgOut += linreg.CompareOutOfSample(c, 2)
+		dAvgOut += linreg.CompareOutOfSample(d, 2)
+		eAvgOut += linreg.CompareOutOfSample(e, 2)
+
+		AvgEout += linreg.Eout()
 	}
 
-	aAvg = aAvg / float64(runs)
-	bAvg = bAvg / float64(runs)
-	cAvg = cAvg / float64(runs)
-	dAvg = dAvg / float64(runs)
-	eAvg = eAvg / float64(runs)
-	fmt.Printf("average of difference between a() and the linear regression hypothesis is %4.2f\n", aAvg)
-	fmt.Printf("average of difference between b() and the linear regression hypothesis is %4.2f\n", bAvg)
-	fmt.Printf("average of difference between c() and the linear regression hypothesis is %4.2f\n", cAvg)
-	fmt.Printf("average of difference between d() and the linear regression hypothesis is %4.2f\n", dAvg)
-	fmt.Printf("average of difference between e() and the linear regression hypothesis is %4.2f\n", eAvg)
+	aAvgIn = aAvgIn / float64(runs)
+	bAvgIn = bAvgIn / float64(runs)
+	cAvgIn = cAvgIn / float64(runs)
+	dAvgIn = dAvgIn / float64(runs)
+	eAvgIn = eAvgIn / float64(runs)
+
+	aAvgOut = aAvgOut / float64(runs)
+	bAvgOut = bAvgOut / float64(runs)
+	cAvgOut = cAvgOut / float64(runs)
+	dAvgOut = dAvgOut / float64(runs)
+	eAvgOut = eAvgOut / float64(runs)
+
+	AvgEout = AvgEout / float64(runs)
+
+	fmt.Printf("average of difference in sample between a() and the linear regression hypothesis is %5.3f\n", aAvgIn)
+	fmt.Printf("average of difference in sample between b() and the linear regression hypothesis is %5.3f\n", bAvgIn)
+	fmt.Printf("average of difference in sample between c() and the linear regression hypothesis is %5.3f\n", cAvgIn)
+	fmt.Printf("average of difference in sample between d() and the linear regression hypothesis is %5.3f\n", dAvgIn)
+	fmt.Printf("average of difference in sample between e() and the linear regression hypothesis is %5.3f\n", eAvgIn)
+
+	fmt.Printf("average of difference out of sample between a() and the linear regression hypothesis is %7.5f\n", aAvgOut)
+	fmt.Printf("average of difference out of sample between b() and the linear regression hypothesis is %7.5f\n", bAvgOut)
+	fmt.Printf("average of difference out of sampleb etween c() and the linear regression hypothesis is %7.5f\n", cAvgOut)
+	fmt.Printf("average of difference out of sample between d() and the linear regression hypothesis is %7.5f\n", dAvgOut)
+	fmt.Printf("average of difference out of sample between e() and the linear regression hypothesis is %7.5f\n", eAvgOut)
+
+	fmt.Printf("average Eout of the hypothesis learn through linear regression with noise of %4.2f is %4.3f\n", linreg.Noise, AvgEout)
 }
 
 func main() {
@@ -290,6 +319,6 @@ func main() {
 	//measure(q8, "q8")
 	fmt.Println("8 d")
 	measure(q9, "q9")
-	fmt.Println("9 ")
-	fmt.Println("10 ")
+	fmt.Println("9 a")
+	fmt.Println("10 b")
 }
