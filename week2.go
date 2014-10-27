@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/santiaago/caltechx.go/linreg"
+	"github.com/santiaago/caltechx.go/pla"
 	"math"
 	"math/rand"
 	"runtime"
@@ -27,8 +28,15 @@ type experiment struct {
 	AvgVMin  float64
 }
 
-func q1() {
+// measure will measure the time taken by function f to run and display it.
+func measure(f func(), name string) {
 	start := time.Now()
+	f()
+	elapsed := time.Since(start)
+	fmt.Printf("%s took %4.2f seconds\n", name, elapsed.Seconds())
+}
+
+func q1() {
 	e := experiment{NRuns: 100000, NCoins: 1000, NFlips: 10}
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 
@@ -59,15 +67,9 @@ func q1() {
 	e.AvgVRand = sumVRand / float64(e.NRuns)
 	e.AvgVMin = sumVMin / float64(e.NRuns)
 	fmt.Printf("V1: %4.2f\nVRand: %4.2f\nVMin: %4.2f\n", e.AvgV1, e.AvgVRand, e.AvgVMin)
-
-	elapsed := time.Since(start)
-	fmt.Printf("q1 took %4.2f seconds\n", elapsed.Seconds())
 }
 
 func q1cc() {
-
-	start := time.Now()
-
 	e := experiment{NRuns: 100000, NCoins: 1000, NFlips: 10}
 
 	var wg sync.WaitGroup
@@ -120,42 +122,62 @@ func q1cc() {
 	e.AvgVRand = sumVRand / float64(e.NRuns)
 	e.AvgVMin = sumVMin / float64(e.NRuns)
 	fmt.Printf("V1: %4.2f\nVRand: %4.2f\nVMin: %4.2f\n", e.AvgV1, e.AvgVRand, e.AvgVMin)
-
-	elapsed := time.Since(start)
-	fmt.Printf("q1 concurrent took %4.2f seconds\n", elapsed.Seconds())
 }
 
 func q5() {
 	runs := 1000 // number of times we repeat the experiment
 	linreg := linreg.NewLinearRegression()
+	linreg.N = 100
 	var avgEin, avgEout float64
 
 	for run := 0; run < runs; run++ {
 		linreg.Initialize()
+
 		linreg.Learn()
 		avgEin += linreg.Ein()
 		avgEout += linreg.Eout()
 	}
-	avgEin = avgEin / runs
-	avgEin = avgEin / runs
-	fmt.Printf("average of In sample error 'Ein' for Linear regresion for N = 100 is %v\n", avgEin)
-	fmt.Printf("average of Out of sample error 'Eout' for Linear regresion for N = 100 is %v\n", avgEout)
+	avgEin = avgEin / float64(runs)
+	avgEout = avgEout / float64(runs)
+	fmt.Printf("average of In sample error 'Ein' for Linear regresion for N = 100 is %4.2f\n", avgEin)
+	fmt.Printf("average of Out of sample error 'Eout' for Linear regresion for N = 100 is %4.2f\n", avgEout)
+}
+
+func q7() {
+	runs := 1000 // number of times we repeat the experiment
+	linreg := linreg.NewLinearRegression()
+	linreg.N = 10
+	iterations := 0
+	for run := 0; run < runs; run++ {
+		linreg.Initialize()
+
+		linreg.Learn()
+		pla := pla.NewPLA()
+		pla.Initialize()
+		for i := 0; i < len(pla.Wn); i++ {
+			pla.Wn[i] = linreg.Wn[i]
+		}
+		iterations += pla.Converge()
+	}
+	avgIterations := float64(iterations) / float64(runs)
+	fmt.Printf("average for PLA to converge for N = %v with initial weight computed by linear regression is %4.2f\n", linreg.N, avgIterations)
 }
 
 func main() {
 	fmt.Println("Num CPU: ", runtime.NumCPU())
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	fmt.Println("week 2")
-	//q1()
-	//q1cc()
+	//measure(q1, "q1")
+	//measure(q1cc, "q1 concurrent")
 	fmt.Println("1 b")
 	fmt.Println("2 d")
 	fmt.Println("3 e")
 	fmt.Println("4 b")
-	q5()
-	fmt.Println("5 ")
-	fmt.Println("6 ")
-	fmt.Println("7 ")
+	//measure(q5, "q5")
+	fmt.Println("5 c")
+	fmt.Println("6 c")
+	measure(q7, "q7")
+	fmt.Println("7 a")
 	fmt.Println("8 ")
 	fmt.Println("9 ")
 	fmt.Println("10 ")
