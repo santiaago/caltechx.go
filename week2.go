@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/santiaago/caltechx.go/linear"
 	"github.com/santiaago/caltechx.go/linreg"
 	"github.com/santiaago/caltechx.go/pla"
 	"math"
@@ -163,6 +164,114 @@ func q7() {
 	fmt.Printf("average for PLA to converge for N = %v with initial weight computed by linear regression is %4.2f\n", linreg.N, avgIterations)
 }
 
+// non linear transformation
+func f(x ...float64) float64 {
+	x1 := x[0]
+	x2 := x[1]
+	return float64(linear.Sign(x1*x1 + x2*x2 - 0.6))
+}
+
+func q8() {
+
+	runs := 1000 // number of times we repeat the experiment
+	linreg := linreg.NewLinearRegression()
+	linreg.N = 1000
+	linreg.RandomTargetFunction = false
+	linreg.TwoParams = true
+	linreg.Noise = 0.1
+	var avgEin float64
+
+	for run := 0; run < runs; run++ {
+
+		linreg.TargetFunction = f //non linear function
+		linreg.Initialize()
+		linreg.Learn()
+		avgEin += linreg.Ein()
+	}
+
+	avgEin = avgEin / float64(runs)
+	fmt.Printf("average of In sample error 'Ein' for Linear regresion for N = 100 is %4.2f\n", avgEin)
+}
+
+// non linear feature returns vector with form (1, x1, x2, x1x2, x1^2, x2^2)
+func nonLinearFeature(a []float64) []float64 {
+	if len(a) != 3 {
+		panic(a)
+	}
+	b := make([]float64, 6)
+	b[0] = float64(1)
+	b[1] = a[1]
+	b[2] = a[2]
+	b[3] = a[1] * a[2]
+	b[4] = a[1] * a[1]
+	b[5] = a[2] * a[2]
+	return b
+}
+
+func a(x ...float64) float64 {
+	x1 := x[0]
+	x2 := x[1]
+	return float64(linear.Sign(-1 - 0.05*x1 + 0.08*x2 + 0.13*x1*x2 + 1.5*x1*x1 + 1.5*x2*x2))
+}
+
+func b(x ...float64) float64 {
+	x1 := x[0]
+	x2 := x[1]
+	return float64(linear.Sign(-1 - 0.05*x1 + 0.08*x2 + 0.13*x1*x2 + 1.5*x1*x1 + 15*x2*x2))
+}
+
+func c(x ...float64) float64 {
+	x1 := x[0]
+	x2 := x[1]
+	return float64(linear.Sign(-1 - 0.05*x1 + 0.08*x2 + 0.13*x1*x2 + 15*x1*x1 + 1.5*x2*x2))
+}
+
+func d(x ...float64) float64 {
+	x1 := x[0]
+	x2 := x[1]
+	return float64(linear.Sign(-1 - 1.5*x1 + 0.08*x2 + 0.13*x1*x2 + 0.05*x1*x1 + 0.05*x2*x2))
+}
+
+func e(x ...float64) float64 {
+	x1 := x[0]
+	x2 := x[1]
+	return float64(linear.Sign(-1 - 0.05*x1 + 0.08*x2 + 1.5*x1*x2 + 0.15*x1*x1 + 0.15*x2*x2))
+}
+
+func q9() {
+
+	runs := 1000 // number of times we repeat the experiment
+	linreg := linreg.NewLinearRegression()
+	linreg.N = 1000
+	linreg.RandomTargetFunction = false
+	linreg.TwoParams = true
+	linreg.Noise = 0.1
+	var aAvg, bAvg, cAvg, dAvg, eAvg float64
+	for run := 0; run < runs; run++ {
+
+		linreg.TargetFunction = f //non linear function
+		linreg.Initialize()
+		linreg.TransformDataSet(nonLinearFeature, 6)
+		linreg.Learn()
+		aAvg += linreg.CompareInSample(a, 2)
+		bAvg += linreg.CompareInSample(b, 2)
+		cAvg += linreg.CompareInSample(c, 2)
+		dAvg += linreg.CompareInSample(d, 2)
+		eAvg += linreg.CompareInSample(e, 2)
+	}
+
+	aAvg = aAvg / float64(runs)
+	bAvg = bAvg / float64(runs)
+	cAvg = cAvg / float64(runs)
+	dAvg = dAvg / float64(runs)
+	eAvg = eAvg / float64(runs)
+	fmt.Printf("average of difference between a() and the linear regression hypothesis is %4.2f\n", aAvg)
+	fmt.Printf("average of difference between b() and the linear regression hypothesis is %4.2f\n", bAvg)
+	fmt.Printf("average of difference between c() and the linear regression hypothesis is %4.2f\n", cAvg)
+	fmt.Printf("average of difference between d() and the linear regression hypothesis is %4.2f\n", dAvg)
+	fmt.Printf("average of difference between e() and the linear regression hypothesis is %4.2f\n", eAvg)
+}
+
 func main() {
 	fmt.Println("Num CPU: ", runtime.NumCPU())
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -176,9 +285,11 @@ func main() {
 	//measure(q5, "q5")
 	fmt.Println("5 c")
 	fmt.Println("6 c")
-	measure(q7, "q7")
+	//measure(q7, "q7")
 	fmt.Println("7 a")
-	fmt.Println("8 ")
+	//measure(q8, "q8")
+	fmt.Println("8 d")
+	measure(q9, "q9")
 	fmt.Println("9 ")
 	fmt.Println("10 ")
 }

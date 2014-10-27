@@ -3,17 +3,25 @@ package linreg
 import (
 	"fmt"
 	"github.com/santiaago/caltechx.go/linear"
+	"math"
+	"math/rand"
+	"time"
 )
 
-// PLA holds all the information needed to run the PLA algorithm.
+// LinearRegression holds all the information needed to run the LinearRegression algorithm.
+// Noise parameter between 0 and 1 will simulate noise by flipping the sign of the output in a random Noise%.
 type LinearRegression struct {
-	N              int               // number of training points
-	Interval       linear.Interval   // interval  in which the points, outputs and function are defined.
-	TargetVars     linear.LinearVars // random vars of the random linear function : target function
-	TargetFunction linear.LinearFunc // target function
-	Xn             []Point           // data set of random points (uniformly in interval)
-	Yn             []int             // output, evaluation of each Xn based on linear function defined by RandLinearVars
-	Wn             Point             // weight vector initialized at zeros.
+	N                    int               // number of training points
+	RandomTargetFunction bool              // flag to know if target function is generated at random or defined by user.
+	TwoParams            bool              // flag to know if target function takes two parameters
+	Noise                float64           // noise should be bwtn 0 and 1 with 1 meaning all noise and 0 meaning no noise at all.
+	Interval             linear.Interval   // interval  in which the points, outputs and function are defined.
+	TargetVars           linear.LinearVars // random vars of the random linear function : target function
+	TargetFunction       linear.LinearFunc // target function
+	Xn                   [][]float64       // data set of random points (uniformly in interval)
+	VectorSize           int               // size of vectors Xn and Wn
+	Yn                   []int             // output, evaluation of each Xn based on linear function defined by RandLinearVars
+	Wn                   []float64         // weight vector initialized at zeros.
 }
 
 // NewLinearRegression is a constructor of a basic linear regression structure:
@@ -23,6 +31,9 @@ func NewLinearRegression() *LinearRegression {
 	linreg := LinearRegression{}
 	linreg.N = 10
 	linreg.Interval = linear.Interval{-1, 1}
+	linreg.RandomTargetFunction = true
+	linreg.Noise = 0
+	linreg.VectorSize = 3
 	return &linreg
 }
 
@@ -33,20 +44,38 @@ func NewLinearRegression() *LinearRegression {
 // - vector Wn is set to zero.
 func (linreg *LinearRegression) Initialize() {
 
-	linreg.TargetVars = linear.RandLinearVars(linreg.Interval) // create the random vars of the random linear function
-	linreg.TargetFunction = linreg.TargetVars.Func()
-	linreg.Xn = make([]Point, linreg.N)
+	// generate random target function if asked. (this is the default behavior
+	if linreg.RandomTargetFunction {
+		linreg.TargetVars = linear.RandLinearVars(linreg.Interval) // create the random vars of the random linear function
+		linreg.TargetFunction = linreg.TargetVars.Func()
+	}
+
+	linreg.Xn = make([][]float64, linreg.N)
+	for i := 0; i < linreg.N; i++ {
+		linreg.Xn[i] = make([]float64, linreg.VectorSize)
+	}
 	linreg.Yn = make([]int, linreg.N)
-	linreg.Wn[0] = float64(0)
-	linreg.Wn[1] = float64(0)
-	linreg.Wn[2] = float64(0)
+	linreg.Wn = make([]float64, linreg.VectorSize)
 
 	for i := 0; i < linreg.N; i++ {
 		linreg.Xn[i][0] = float64(1)
-		linreg.Xn[i][1] = linreg.Interval.RandFloat()
-		linreg.Xn[i][2] = linreg.Interval.RandFloat()
-
-		linreg.Yn[i] = evaluate(linreg.TargetFunction, linreg.Xn[i])
+		for j := 1; j < len(linreg.Xn[i]); j++ {
+			linreg.Xn[i][j] = linreg.Interval.RandFloat()
+		}
+		flip := 1
+		if linreg.Noise != 0 {
+			r := rand.New(rand.NewSource(time.Now().UnixNano()))
+			rN := r.Intn(100)
+			if rN < int(math.Ceil(linreg.Noise*100)) {
+				flip = -1
+			}
+		}
+		// output with potential noise in 'flip' variable
+		if !linreg.TwoParams {
+			linreg.Yn[i] = evaluate(linreg.TargetFunction, linreg.Xn[i]) * flip
+		} else {
+			linreg.Yn[i] = evaluateTwoParams(linreg.TargetFunction, linreg.Xn[i]) * flip
+		}
 	}
 }
 
@@ -105,14 +134,6 @@ func (linreg *LinearRegression) setWeight(d matrix) {
 	}
 }
 
-// sign returns 1 if number is > than 0 and -1 otherwise
-func sign(p float64) int {
-	if p > float64(0) {
-		return 1
-	}
-	return -1
-}
-
 // Ein is the fraction of in sample points which got misclassified.
 func (linreg *LinearRegression) Ein() float64 {
 	// XnWn
@@ -122,7 +143,7 @@ func (linreg *LinearRegression) Ein() float64 {
 		for j := 0; j < len(linreg.Xn[0]); j++ {
 			gi += linreg.Xn[i][j] * linreg.Wn[j]
 		}
-		gInSample[i] = sign(gi)
+		gInSample[i] = linear.Sign(gi)
 	}
 	nEin := 0
 	for i := 0; i < len(gInSample); i++ {
@@ -140,18 +161,19 @@ func (linreg *LinearRegression) Eout() float64 {
 	numError := 0
 
 	for i := 0; i < outOfSample; i++ {
-		var oX Point
 		var oY int
+		oX := make([]float64, linreg.VectorSize)
 		oX[0] = float64(1)
-		oX[1] = linreg.Interval.RandFloat()
-		oX[2] = linreg.Interval.RandFloat()
+		for j := 1; j < len(oX); j++ {
+			oX[j] = linreg.Interval.RandFloat()
+		}
 		oY = evaluate(linreg.TargetFunction, oX)
 		gi := float64(0)
 		for j := 0; j < len(oX); j++ {
 			gi += oX[j] * linreg.Wn[j]
 		}
 
-		if sign(gi) != oY {
+		if linear.Sign(gi) != oY {
 			numError++
 		}
 	}
@@ -159,21 +181,71 @@ func (linreg *LinearRegression) Eout() float64 {
 
 }
 
-// Point is a 2 dimentional coordinate (x1 x2).
-// Plus a bias coordinate x0 = 1
-type Point [3]float64
+// CompareInSample will compare the current hypothesis function learn by linear regression whith respect to 'f'
+func (linreg *LinearRegression) CompareInSample(f linear.LinearFunc, nParams int) float64 {
 
-// print will print the coordinates of pt in the following format:
-// point: x0:%4.2f \tx1:%4.2f \tx2:%4.2f\n
-func (pt *Point) print(name string) {
-	p := *pt
-	fmt.Printf("\t%s0: %4.2f \t%s1: %4.2f \t%s2: %4.2f\t\n", name, p[0], name, p[1], name, p[2])
+	gInSample := make([]float64, len(linreg.Xn))
+	fInSample := make([]float64, len(linreg.Xn))
+
+	for i := 0; i < len(linreg.Xn); i++ {
+		gi := float64(0)
+		for j := 0; j < len(linreg.Xn[0]); j++ {
+			gi += linreg.Xn[i][j] * linreg.Wn[j]
+		}
+		gInSample[i] = float64(linear.Sign(gi))
+		if nParams == 2 {
+			fInSample[i] = f(linreg.Xn[i][1], linreg.Xn[i][2])
+		} else if nParams == 1 {
+			fInSample[i] = f(linreg.Xn[i][1])
+		}
+	}
+
+	// measure difference:
+	diff := 0
+	for i := 0; i < len(linreg.Xn); i++ {
+		if gInSample[i] != fInSample[i] {
+			diff++
+		}
+	}
+	return float64(diff) / float64(len(linreg.Xn))
+}
+
+type transformFunc func([]float64) []float64
+
+func (linreg *LinearRegression) TransformDataSet(f transformFunc, newSize int) {
+	for i := 0; i < len(linreg.Xn); i++ {
+		oldXn := linreg.Xn[i]
+		newXn := f(oldXn)
+		linreg.Xn[i] = make([]float64, newSize)
+		for j := 0; j < len(newXn); j++ {
+			linreg.Xn[i][j] = newXn[j]
+		}
+	}
+	linreg.Wn = make([]float64, newSize)
 }
 
 // evaluate will map function f in point p with respect to the current y point.
 // if it stands on one side it is +1 else -1
-func evaluate(f linear.LinearFunc, p Point) int {
+// todo: might change name to mapPoint
+func evaluate(f linear.LinearFunc, p []float64) int {
+	if len(p) < 3 {
+		panic(p)
+	}
 	if p[2] < f(p[1]) {
+		return -1
+	}
+	return 1
+}
+
+// evaluate will map function f in point p with respect to the current y point.
+// this evaluate version takes 2 parameters instead of a single one.
+// if it stands on one side it is +1 else -1
+// todo: might change name to mapPointTwoParams
+func evaluateTwoParams(f linear.LinearFunc, p []float64) int {
+	if len(p) < 3 {
+		panic(p)
+	}
+	if p[2] < f(p[1], p[2]) {
 		return -1
 	}
 	return 1

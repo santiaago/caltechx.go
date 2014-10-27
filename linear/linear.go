@@ -31,14 +31,14 @@ func RandLinearVars(i Interval) LinearVars {
 
 // LinearFunc is a linear function that takes a float x and returns y = ax + b.
 // f(x) = y
-type LinearFunc func(x float64) float64
+type LinearFunc func(x ...float64) float64
 
 // Func returns a linear function with respect of the defined linearVars.
 // f(x) = ax + b
 // With a and b defined by linearVars.
 func (l *LinearVars) Func() LinearFunc {
-	return func(x float64) float64 {
-		return x*l.A + l.B
+	return func(x ...float64) float64 {
+		return x[0]*l.A + l.B
 	}
 }
 
@@ -48,30 +48,10 @@ func (l *LinearVars) Print() {
 	fmt.Printf("func: %4.2fX + %4.2f\n", l.A, l.B)
 }
 
-// // point is a 2 dimentional coordinate (x1 x2).
-// // with an additional x0 coordinate for the perceptron algorithm.
-// type point [3]float64
-
-// // print will print the coordinates of pt in the following format:
-// // point: x0:%4.2f \tx1:%4.2f \tx2:%4.2f\n
-// func (pt *point) print(name string) {
-// 	p := *pt
-// 	fmt.Printf("\t%s0: %4.2f \t%s1: %4.2f \t%s2: %4.2f\t", name, p[0], name, p[1], name, p[2])
-// }
-
-// // evaluate will map function f in point p with respect to the current y point.
-// // if it stands on one side it is +1 else -1
-// func evaluate(f linearFunc, p point) int {
-// 	if p[2] < f(p[1]) {
-// 		return -1
-// 	}
-// 	return 1
-// }
-
 // // sign returns 1 if number is > than 0 and -1 otherwise
-// func sign(p float64) int {
-// 	if p > float64(0) {
-// 		return 1
-// 	}
-// 	return -1
-// }
+func Sign(p float64) int {
+	if p > float64(0) {
+		return 1
+	}
+	return -1
+}

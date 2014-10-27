@@ -32,7 +32,7 @@ func h(x Point, w Point) int {
 	for i := 0; i < len(w); i++ {
 		res = res + w[i]*x[i]
 	}
-	return sign(res)
+	return linear.Sign(res)
 }
 
 // NewPLA is a constructor of a basic PLA:
@@ -177,12 +177,4 @@ func evaluate(f linear.LinearFunc, p Point) int {
 		return -1
 	}
 	return 1
-}
-
-// sign returns 1 if number is > than 0 and -1 otherwise
-func sign(p float64) int {
-	if p > float64(0) {
-		return 1
-	}
-	return -1
 }
