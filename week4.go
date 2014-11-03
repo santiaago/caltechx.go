@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/santiaago/caltechx.go/biasAndVariance"
 	"github.com/santiaago/caltechx.go/generalizationError"
 	"runtime"
 	"time"
@@ -51,6 +52,14 @@ func q3() {
 	fmt.Printf("Devroye: \t\t\t\t%7.5f\n", genErr.Devroye(5))
 }
 
+func q4() {
+	bav := biasAndVariance.NewBiasAndVariance()
+	bav.Learn()
+	fmt.Printf("g(x) = %3.2f\n", bav.Slope)
+	fmt.Printf("bias = %3.2f\n", bav.Bias)
+	fmt.Printf("variance = %3.2f\n", bav.Variance)
+}
+
 func main() {
 	fmt.Println("Num CPU: ", runtime.NumCPU())
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -61,6 +70,7 @@ func main() {
 	fmt.Println("2 d")
 	measure(q3, "q3")
 	fmt.Println("3 c")
+	measure(q4, "q4")
 	fmt.Println("4")
 	fmt.Println("5")
 	fmt.Println("6")
