@@ -54,10 +54,11 @@ func q3() {
 
 func q4() {
 	bav := biasAndVariance.NewBiasAndVariance()
-	bav.Learn()
+	bav.LearnLine()
 	fmt.Printf("g(x) = %3.2f\n", bav.Slope)
 	fmt.Printf("bias = %3.2f\n", bav.Bias)
 	fmt.Printf("variance = %3.2f\n", bav.Variance)
+	fmt.Printf("Eout = %3.2f\n", bav.Bias+bav.Variance)
 }
 
 func main() {

@@ -28,11 +28,11 @@ func NewBiasAndVariance() *BiasAndVariance {
 	return &bav
 }
 
-func (bav *BiasAndVariance) Learn() {
+func (bav *BiasAndVariance) LearnLine() {
 	sumA := float64(0)
 
 	type GFunc func(x float64, a float64) float64
-	gs := make([]GFunc, bav.Runs)
+	gs := make([]func(x float64, a float64) float64, bav.Runs)
 	as := make([]float64, bav.Runs)
 	for i := 0; i < bav.Runs; i++ {
 		x1 := bav.Interval.RandFloat()
@@ -59,15 +59,20 @@ func (bav *BiasAndVariance) Learn() {
 		return bav.Slope * x
 	}
 
-	// bias
+	bav.Bias = bav.ComputeBias(gBar)
+	bav.Variance = bav.ComputeVariance(gBar, gs, as)
+}
+
+func (bav *BiasAndVariance) ComputeBias(gBar func(x float64) float64) float64 {
 	sumBias := float64(0)
 	for i := 0; i < bav.Runs; i++ {
 		x := bav.Interval.RandFloat()
 		sumBias += math.Pow(gBar(x)-bav.TargetFunction(x), float64(2))
 	}
-	bav.Bias = sumBias / float64(bav.Runs)
+	return sumBias / float64(bav.Runs)
+}
 
-	// variance
+func (bav *BiasAndVariance) ComputeVariance(gBar func(x float64) float64, gs []func(x float64, a float64) float64, as []float64) float64 {
 	sumVar := float64(0)
 	for i := 0; i < bav.Runs; i++ {
 		for j := 0; j < bav.Runs; j++ {
@@ -75,5 +80,6 @@ func (bav *BiasAndVariance) Learn() {
 			sumVar += math.Pow(gs[j](x, as[j])-gBar(x), float64(2))
 		}
 	}
-	bav.Variance = sumVar / math.Pow(float64(bav.Runs), float64(2))
+	return sumVar / math.Pow(float64(bav.Runs), float64(2))
+
 }
