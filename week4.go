@@ -55,10 +55,32 @@ func q3() {
 func q4() {
 	bav := biasAndVariance.NewBiasAndVariance()
 	bav.LearnLine()
-	fmt.Printf("g(x) = %3.2f\n", bav.Slope)
-	fmt.Printf("bias = %3.2f\n", bav.Bias)
-	fmt.Printf("variance = %3.2f\n", bav.Variance)
-	fmt.Printf("Eout = %3.2f\n", bav.Bias+bav.Variance)
+	fmt.Printf("h(x) = ax\n")
+	bav.Print()
+}
+
+func q7() {
+	bav := biasAndVariance.NewBiasAndVariance()
+	bav.LearnConstant()
+	fmt.Printf("h(x) = b\n")
+	bav.Print()
+
+	bav1 := biasAndVariance.NewBiasAndVariance()
+	bav1.ThroughOrigin = false
+	bav1.LearnLine()
+	fmt.Printf("h(x) = ax + b\n")
+	bav1.Print()
+
+	bav2 := biasAndVariance.NewBiasAndVariance()
+	bav2.LearnQuadratic()
+	fmt.Printf("h(x) = ax^2\n")
+	bav2.Print()
+
+	bav3 := biasAndVariance.NewBiasAndVariance()
+	bav3.ThroughOrigin = false
+	bav3.LearnQuadratic()
+	fmt.Printf("h(x) = ax^2\n")
+	bav2.Print()
 }
 
 func main() {
@@ -72,11 +94,12 @@ func main() {
 	measure(q3, "q3")
 	fmt.Println("3 c")
 	measure(q4, "q4")
-	fmt.Println("4")
-	fmt.Println("5")
-	fmt.Println("6")
-	fmt.Println("7")
-	fmt.Println("8")
-	fmt.Println("9")
-	fmt.Println("10")
+	fmt.Println("4 e")
+	fmt.Println("5 b")
+	fmt.Println("6 a")
+	measure(q7, "q7")
+	fmt.Println("7 b")
+	fmt.Println("8 c")
+	fmt.Println("9 b")
+	fmt.Println("10 e")
 }
