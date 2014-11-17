@@ -308,3 +308,8 @@ func (linreg *LinearRegression) print() {
 	//linreg.Wn.print("W")
 	fmt.Println()
 }
+
+// Ed[Ein(wlin)] = sigma^2 (1 - (d + 1)/ N)
+func LinearRegressionError(n int, sigma float64, d int) float64 {
+	return sigma * sigma * (1 - (float64(d+1))/float64(n))
+}

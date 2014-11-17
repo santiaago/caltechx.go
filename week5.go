@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/santiaago/caltechx.go/linreg"
 	"runtime"
 	"time"
 )
@@ -14,12 +15,19 @@ func measure(f func(), name string) {
 	fmt.Printf("%s took %4.2f seconds\n", name, elapsed.Seconds())
 }
 
+func q1() {
+	ns := [...]int{10, 25, 100, 500, 1000}
+	for i := range ns {
+		fmt.Println(ns[i], " : ", linreg.LinearRegressionError(ns[i], float64(0.1), 8) > float64(0.008))
+	}
+}
+
 func main() {
 	fmt.Println("Num CPU: ", runtime.NumCPU())
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	fmt.Println("week 5")
-	//measure(q1, "q1")
-	fmt.Println("1")
+	measure(q1, "q1")
+	fmt.Println("1 c")
 	fmt.Println("2")
 	fmt.Println("3")
 	fmt.Println("4")
