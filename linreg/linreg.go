@@ -19,8 +19,8 @@ type LinearRegression struct {
 	TargetVars           linear.LinearVars // random vars of the random linear function : target function
 	TargetFunction       linear.LinearFunc // target function
 	Xn                   [][]float64       // data set of random points (uniformly in interval)
-	VectorSize           int               // size of vectors Xn and Wn
-	Yn                   []int             // output, evaluation of each Xn based on linear function defined by RandLinearVars
+	VectorSize           int               // size of vectors Xi and Wi
+	Yn                   []int             // output, evaluation of each Xi based on linear function.
 	Wn                   []float64         // weight vector initialized at zeros.
 }
 
@@ -44,7 +44,7 @@ func NewLinearRegression() *LinearRegression {
 // - vector Wn is set to zero.
 func (linreg *LinearRegression) Initialize() {
 
-	// generate random target function if asked. (this is the default behavior
+	// generate random target function if asked. (this is the default behavior)
 	if linreg.RandomTargetFunction {
 		linreg.TargetVars = linear.RandLinearVars(linreg.Interval) // create the random vars of the random linear function
 		linreg.TargetFunction = linreg.TargetVars.Func()
