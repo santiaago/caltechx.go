@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	GD "github.com/santiaago/caltechx.go/gradientDescent"
 	"github.com/santiaago/caltechx.go/linreg"
 	"runtime"
 	"time"
@@ -22,6 +23,28 @@ func q1() {
 	}
 }
 
+func q5() {
+	var gd GD.GradientDescent
+	gd.U = float64(1)
+	gd.V = float64(1)
+	gd.Eta = float64(0.1)
+	gd.ErrorLimit = 10e-14
+	fmt.Println("iterations needed to fall under the limit, ", gd.E())
+	fmt.Println("error: ", gd.Err())
+	fmt.Println("U:", gd.U, " V:", gd.V)
+}
+
+func q7() {
+	var cd GD.CoordinateDescent
+	cd.U = float64(1)
+	cd.V = float64(1)
+	cd.Eta = float64(0.1)
+	cd.IterationLimit = 15
+	fmt.Println("iterations needed to fall under the limit, ", cd.E())
+	fmt.Println("error: ", cd.Err())
+	fmt.Println("U:", cd.U, " V:", cd.V)
+}
+
 func main() {
 	fmt.Println("Num CPU: ", runtime.NumCPU())
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -31,9 +54,11 @@ func main() {
 	fmt.Println("2 d")
 	fmt.Println("3 c")
 	fmt.Println("4 e")
-	fmt.Println("5")
-	fmt.Println("6")
-	fmt.Println("7")
+	fmt.Println("5 d")
+	measure(q5, "q5")
+	fmt.Println("6 e")
+	measure(q7, "q7")
+	fmt.Println("7 a")
 	fmt.Println("8")
 	fmt.Println("9")
 	fmt.Println("10")
