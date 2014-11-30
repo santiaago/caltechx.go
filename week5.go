@@ -4,6 +4,7 @@ import (
 	"fmt"
 	GD "github.com/santiaago/caltechx.go/gradientDescent"
 	"github.com/santiaago/caltechx.go/linreg"
+	"github.com/santiaago/caltechx.go/logreg"
 	"runtime"
 	"time"
 )
@@ -45,6 +46,20 @@ func q7() {
 	fmt.Println("U:", cd.U, " V:", cd.V)
 }
 
+func q8() {
+	eout := float64(0)
+	epochs := 0
+	for i := 0; i < 100; i++ {
+		lg := logreg.NewLogisticRegression()
+		lg.Initialize()
+		lg.Learn()
+		eout += lg.Eout()
+		epochs += lg.Epochs
+	}
+	fmt.Println("logistic regression: eout: ", eout/float64(100))
+	fmt.Println("logistic regression: number of epochs: ", float64(epochs)/float64(100))
+}
+
 func main() {
 	fmt.Println("Num CPU: ", runtime.NumCPU())
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -59,6 +74,7 @@ func main() {
 	fmt.Println("6 e")
 	measure(q7, "q7")
 	fmt.Println("7 a")
+	measure(q8, "q8")
 	fmt.Println("8")
 	fmt.Println("9")
 	fmt.Println("10")
