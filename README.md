@@ -1,19 +1,51 @@
 caltechx.go
 ===========
 
-todo: 
+Machine learning course from caltech: [learning from data](https://work.caltech.edu/telecourse.html) done in [go](http://golang.org)
+
+* **week 1:**
+    * PLA (Perceptron learning Algorithm)
+* **week 2:**
+    * Hoeffding Inequality
+    * Linear Regression
+    * Nonlinear Transformation
+* **week 3:**
+    * Generalization Error
+* **week 4:**
+    * VC bound
+    * Bias and Variance
+* **week 5:**
+    * Linear Regression Error
+    * Gradient Descent
+    * Logistic Regression
+* **week 6:**
+    * Overfitting and Regularization With Weight Decay
+    * Neural Networks
+* **week 7:**
+    * Validation
+    * Estimators
+    * Cross Validation
+    * PLA vs. SVM
+* **week 8:**
+    * Support Vector Machines With Soft Margins
+    * Polynomial Kernels
+    * Cross Validation
+    * RBF Kernel
+
+
+##todo:
 
 * concurrent runs.
 * command line animations. [Pretty command line / console output on Unix in Python and Go Lang](http://www.darkcoding.net/software/pretty-command-line-console-output-on-unix-in-python-and-go-lang/)
 * refactor PLA and other functions into separate packages.
 
-thoughts:
+##thoughts:
 
-It should be better to devide the packages based on models and methods.
-Here is how the topics are presentes in the learning from data web page:
+It is better to divide the packages based on *models* and *methods*.
+Here is how the topics are presented in the learning from data web page:
 [topics](http://work.caltech.edu/library/)
 
-models:
+###models:
 
 * linear classification: PLA
 * linear regression
@@ -24,6 +56,6 @@ models:
 * nearest neighbors
 
 
-methods:
+###methods:
 * regularization
 * validation
