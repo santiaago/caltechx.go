@@ -48,6 +48,8 @@ func q2() {
 	linreg.InitializeFromFile("data/in.dta")
 	linreg.ApplyTransformation(nonLinearFeature)
 	linreg.Learn()
+	// ein := linreg.Ein()
+	// eout := linreg.EoutFromFile("data/out.dta")
 }
 
 func main() {

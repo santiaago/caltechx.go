@@ -102,29 +102,35 @@ func (linreg *LinearRegression) InitializeFromFile(filename string) error {
 	scanner := bufio.NewScanner(file)
 	numberOfLines := 0
 	for scanner.Scan() {
-		line := strings.Split(scanner.Text(), "\n")
+		split := strings.Split(scanner.Text(), " ")
+		var line []string
+		for _, s := range split {
+			cell := strings.Replace(s, " ", "", -1)
+			if len(cell) > 0 {
+				line = append(line, cell)
+			}
+		}
 
 		newX := make([]float64, 0)
 		newX = append(newX, float64(1))
 
 		if x1, err := strconv.ParseFloat(line[0], 64); err != nil {
-			fmt.Println("unable to parse line %d in file %s", numberOfLines, filename)
+			fmt.Printf("x1 unable to parse line %d in file %s\n", numberOfLines, filename)
 			return err
 		} else {
 			newX = append(newX, x1)
 		}
-
 		if x2, err := strconv.ParseFloat(line[1], 64); err != nil {
-			fmt.Println("unable to parse line %d in file %s", numberOfLines, filename)
+			fmt.Printf("x2 unable to parse line %d in file %s\n", numberOfLines, filename)
 			return err
 		} else {
 			newX = append(newX, x2)
 		}
-
-		if y, err := strconv.ParseInt(line[2], 10, 64); err != nil {
-			fmt.Println("unable to parse line %d in file %s", numberOfLines, filename)
+		if y, err := strconv.ParseFloat(line[2], 64); err != nil {
+			fmt.Printf("y unable to parse line %d in file %s\n", numberOfLines, filename)
 			return err
 		} else {
+
 			linreg.Yn = append(linreg.Yn, int(y))
 		}
 
@@ -134,6 +140,7 @@ func (linreg *LinearRegression) InitializeFromFile(filename string) error {
 	}
 	linreg.N = numberOfLines
 	linreg.VectorSize = len(linreg.Xn[0])
+	linreg.Wn = make([]float64, linreg.VectorSize)
 
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
@@ -147,6 +154,7 @@ func (linreg *LinearRegression) ApplyTransformation(transformFunc func(a []float
 		linreg.Xn[i] = Xtrans
 	}
 	linreg.VectorSize = len(linreg.Xn[0])
+	linreg.Wn = make([]float64, linreg.VectorSize)
 }
 
 // Learn will compute the pseudo inverse X dager and set W vector accordingly
