@@ -1,10 +1,15 @@
 package linreg
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/santiaago/caltechx.go/linear"
+	"log"
 	"math"
 	"math/rand"
+	"os"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -77,6 +82,71 @@ func (linreg *LinearRegression) Initialize() {
 			linreg.Yn[i] = evaluateTwoParams(linreg.TargetFunction, linreg.Xn[i]) * flip
 		}
 	}
+}
+
+// InitializeFromFile reads a file with the following format:
+// x1 x2 y
+// x1 x2 y
+// x1 x2 y
+// And sets Xn and Yn accordingly
+func (linreg *LinearRegression) InitializeFromFile(filename string) error {
+	file, err := os.Open(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	//linreg.Xn = make([][]float64, 0)
+	//linreg.Yn = make([]float64, 0)
+
+	scanner := bufio.NewScanner(file)
+	numberOfLines := 0
+	for scanner.Scan() {
+		line := strings.Split(scanner.Text(), "\n")
+
+		newX := make([]float64, 0)
+		newX = append(newX, float64(1))
+
+		if x1, err := strconv.ParseFloat(line[0], 64); err != nil {
+			fmt.Println("unable to parse line %d in file %s", numberOfLines, filename)
+			return err
+		} else {
+			newX = append(newX, x1)
+		}
+
+		if x2, err := strconv.ParseFloat(line[1], 64); err != nil {
+			fmt.Println("unable to parse line %d in file %s", numberOfLines, filename)
+			return err
+		} else {
+			newX = append(newX, x2)
+		}
+
+		if y, err := strconv.ParseInt(line[2], 10, 64); err != nil {
+			fmt.Println("unable to parse line %d in file %s", numberOfLines, filename)
+			return err
+		} else {
+			linreg.Yn = append(linreg.Yn, int(y))
+		}
+
+		linreg.Xn = append(linreg.Xn, newX)
+
+		numberOfLines++
+	}
+	linreg.N = numberOfLines
+	linreg.VectorSize = len(linreg.Xn[0])
+
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+	return nil
+}
+
+func (linreg *LinearRegression) ApplyTransformation(transformFunc func(a []float64) []float64) {
+	for i := 0; i < linreg.N; i++ {
+		Xtrans := transformFunc(linreg.Xn[i])
+		linreg.Xn[i] = Xtrans
+	}
+	linreg.VectorSize = len(linreg.Xn[0])
 }
 
 // Learn will compute the pseudo inverse X dager and set W vector accordingly
@@ -192,7 +262,6 @@ func (linreg *LinearRegression) Eout() float64 {
 		}
 	}
 	return float64(numError) / float64(outOfSample)
-
 }
 
 // CompareInSample will compare the current hypothesis function learn by linear regression whith respect to 'f'

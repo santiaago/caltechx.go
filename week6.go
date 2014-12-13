@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/santiaago/caltechx.go/linear"
+	"github.com/santiaago/caltechx.go/linreg"
+	"math"
 	"runtime"
 	"time"
 )
@@ -14,7 +17,37 @@ func measure(f func(), name string) {
 	fmt.Printf("%s took %4.2f seconds\n", name, elapsed.Seconds())
 }
 
+// non linear transformation
+func f(x ...float64) float64 {
+	x1 := x[0]
+	x2 := x[1]
+	return float64(linear.Sign(x1*x1 + x2*x2 - 0.6))
+}
+
+// non linear feature returns vector with form
+//    (1, x1, x2, x1^2, x2^2, x1*x2, |x1 -x2|, |x1+ x2|)
+func nonLinearFeature(a []float64) []float64 {
+	if len(a) != 3 {
+		panic(a)
+	}
+	x1, x2 := a[1], a[2]
+	b := make([]float64, 8)
+	b[0] = float64(1)
+	b[1] = x1
+	b[2] = x2
+	b[3] = x1 * x1
+	b[4] = x2 * x2
+	b[5] = x1 * x2
+	b[6] = math.Abs(x1 - x2)
+	b[7] = math.Abs(x1 + x2)
+	return b
+}
+
 func q2() {
+	linreg := linreg.NewLinearRegression()
+	linreg.InitializeFromFile("data/in.dta")
+	linreg.ApplyTransformation(nonLinearFeature)
+	linreg.Learn()
 }
 
 func main() {
@@ -27,11 +60,8 @@ func main() {
 	fmt.Println("3")
 	fmt.Println("4")
 	fmt.Println("5")
-	measure(q5, "q5")
 	fmt.Println("6")
-	measure(q7, "q7")
 	fmt.Println("7")
-	measure(q8, "q8")
 	fmt.Println("8")
 	fmt.Println("9")
 	fmt.Println("10")
