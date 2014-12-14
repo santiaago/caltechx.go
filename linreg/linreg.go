@@ -270,13 +270,7 @@ func (linreg *LinearRegression) EAugIn() float64 {
 		}
 	}
 
-	sum := float64(0)
-	for i := 0; i < len(linreg.WReg); i++ {
-		sum += math.Pow(linreg.WReg[i], 2)
-	}
-	error := (linreg.Lambda / float64(linreg.N)) * sum
-
-	return (float64(nEin) / float64(len(gInSample))) + error
+	return float64(nEin) / float64(len(gInSample))
 }
 
 // Eout is the fraction of out of sample points which got misclassified.
@@ -435,17 +429,7 @@ func (linreg *LinearRegression) EAugOutFromFile(filename string) (float64, error
 		numberOfLines++
 	}
 
-	sum := float64(0)
-	for i := 0; i < len(linreg.WReg); i++ {
-		sum += math.Pow(linreg.WReg[i], 2)
-	}
-	error := (linreg.Lambda / float64(linreg.N)) * sum
-
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
-
-	return (float64(numError) / float64(numberOfLines)) + error, nil
+	return float64(numError) / float64(numberOfLines), nil
 }
 
 // EReg
@@ -453,11 +437,6 @@ func (linreg *LinearRegression) EAugOutFromFile(filename string) (float64, error
 // WReg = (Z'Z + λI)^−1 Z'y
 func (linreg *LinearRegression) LearnWeightDecay() {
 	linreg.Lambda = math.Pow(10, float64(linreg.K))
-	// sum := float64(0)
-	// for i := 0; i < len(linreg.Wi); i++ {
-	// 	sum += math.Pow(linreg.Wi[i], 2)
-	// }
-	// wdc := (linreg.Lambda / float64(linreg.N)) * sum
 
 	// compute X' <=> X transpose
 	XTranspose := make([][]float64, len(linreg.Xn[0]))
@@ -470,6 +449,7 @@ func (linreg *LinearRegression) LearnWeightDecay() {
 			XTranspose[i][j] = linreg.Xn[j][i]
 		}
 	}
+
 	// compute lambda*Identity
 	lambdaIdentity := make([][]float64, len(linreg.Xn[0]))
 	for i := 0; i < len(lambdaIdentity); i++ {
@@ -477,12 +457,25 @@ func (linreg *LinearRegression) LearnWeightDecay() {
 		lambdaIdentity[i][i] = float64(1) * linreg.Lambda
 	}
 
+	// compute Z'Z
+	XProduct := make([][]float64, len(linreg.Xn[0]))
+	for i := 0; i < len(linreg.Xn[0]); i++ {
+		XProduct[i] = make([]float64, len(linreg.Xn[0]))
+	}
+	for k := 0; k < len(linreg.Xn[0]); k++ {
+		for i := 0; i < len(XTranspose); i++ {
+			for j := 0; j < len(XTranspose[0]); j++ {
+				XProduct[i][k] += XTranspose[i][j] * linreg.Xn[j][k]
+			}
+		}
+	}
+
 	// compute Z'Z + lambda*I
 	sumMatrix := make([][]float64, len(lambdaIdentity))
 	for i := 0; i < len(sumMatrix); i++ {
 		sumMatrix[i] = make([]float64, len(sumMatrix))
 		for j := 0; j < len(sumMatrix); j++ {
-			sumMatrix[i][j] = XTranspose[i][j] + lambdaIdentity[i][j]
+			sumMatrix[i][j] = XProduct[i][j] + lambdaIdentity[i][j]
 		}
 	}
 
@@ -491,10 +484,12 @@ func (linreg *LinearRegression) LearnWeightDecay() {
 	inverseMatrix := toInverse.inverse()
 
 	// compute product: inverseMatrix Z'
-	XDagger := make([][]float64, len(inverseMatrix))
+	XDagger := make([][]float64, len(sumMatrix))
 	for i := 0; i < len(inverseMatrix); i++ {
-		XDagger[i] = make([]float64, len(inverseMatrix[0]))
+		XDagger[i] = make([]float64, len(XTranspose[0]))
 	}
+	fmt.Println("", len(XTranspose), len(XTranspose[0]), len(inverseMatrix), len(inverseMatrix[0]), len(XDagger), len(XDagger[0]))
+
 	for k := 0; k < len(XTranspose[0]); k++ {
 		for i := 0; i < len(inverseMatrix); i++ {
 			for j := 0; j < len(inverseMatrix[0]); j++ {
