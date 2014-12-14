@@ -488,7 +488,6 @@ func (linreg *LinearRegression) LearnWeightDecay() {
 	for i := 0; i < len(inverseMatrix); i++ {
 		XDagger[i] = make([]float64, len(XTranspose[0]))
 	}
-	fmt.Println("", len(XTranspose), len(XTranspose[0]), len(inverseMatrix), len(inverseMatrix[0]), len(XDagger), len(XDagger[0]))
 
 	for k := 0; k < len(XTranspose[0]); k++ {
 		for i := 0; i < len(inverseMatrix); i++ {

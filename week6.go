@@ -57,6 +57,34 @@ func q2() {
 	eAugIn := linreg.EAugIn()
 	eAugOut, _ := linreg.EAugOutFromFile("data/out.dta")
 	fmt.Printf("Ein = %f, Eout = %f for k = %d\n", eAugIn, eAugOut, linreg.K)
+
+	linreg.K = 3
+	linreg.LearnWeightDecay()
+	eAugIn = linreg.EAugIn()
+	eAugOut, _ = linreg.EAugOutFromFile("data/out.dta")
+	fmt.Printf("Ein = %f, Eout = %f for k = %d\n", eAugIn, eAugOut, linreg.K)
+
+	k := []int{2, 1, 0, -1, -2}
+	for _, ki := range k {
+		linreg.K = ki
+		linreg.LearnWeightDecay()
+		eAugIn = linreg.EAugIn()
+		eAugOut, _ = linreg.EAugOutFromFile("data/out.dta")
+		fmt.Printf("Ein = %f, Eout = %f for k = %d\n", eAugIn, eAugOut, ki)
+	}
+
+	minK := 0
+	minEAug := float64(1000)
+	for i := -10; i < 10; i++ {
+		linreg.K = i
+		linreg.LearnWeightDecay()
+		eAugOut, _ = linreg.EAugOutFromFile("data/out.dta")
+		if minEAug > eAugOut {
+			minK = i
+			minEAug = eAugOut
+		}
+	}
+	fmt.Printf("mininum Eout = %f with k = %d for k in {-10; 10}\n", minEAug, minK)
 }
 
 func main() {
