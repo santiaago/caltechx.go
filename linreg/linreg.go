@@ -13,6 +13,8 @@ import (
 	"time"
 )
 
+type TransformFunc func(a []float64) []float64
+
 // LinearRegression holds all the information needed to run the LinearRegression algorithm.
 // Noise parameter between 0 and 1 will simulate noise by flipping the sign of the output in a random Noise%.
 type LinearRegression struct {
@@ -23,10 +25,11 @@ type LinearRegression struct {
 	Interval             linear.Interval   // interval  in which the points, outputs and function are defined.
 	TargetVars           linear.LinearVars // random vars of the random linear function : target function
 	TargetFunction       linear.LinearFunc // target function
-	Xn                   [][]float64       // data set of random points (uniformly in interval)
-	VectorSize           int               // size of vectors Xi and Wi
-	Yn                   []int             // output, evaluation of each Xi based on linear function.
-	Wn                   []float64         // weight vector initialized at zeros.
+	TransformFunction    transformFunc
+	Xn                   [][]float64 // data set of random points (uniformly in interval)
+	VectorSize           int         // size of vectors Xi and Wi
+	Yn                   []int       // output, evaluation of each Xi based on linear function.
+	Wn                   []float64   // weight vector initialized at zeros.
 }
 
 // NewLinearRegression is a constructor of a basic linear regression structure:
@@ -148,9 +151,9 @@ func (linreg *LinearRegression) InitializeFromFile(filename string) error {
 	return nil
 }
 
-func (linreg *LinearRegression) ApplyTransformation(transformFunc func(a []float64) []float64) {
+func (linreg *LinearRegression) ApplyTransformation() {
 	for i := 0; i < linreg.N; i++ {
-		Xtrans := transformFunc(linreg.Xn[i])
+		Xtrans := linreg.TransformFunction(linreg.Xn[i])
 		linreg.Xn[i] = Xtrans
 	}
 	linreg.VectorSize = len(linreg.Xn[0])
@@ -270,6 +273,67 @@ func (linreg *LinearRegression) Eout() float64 {
 		}
 	}
 	return float64(numError) / float64(outOfSample)
+}
+
+func (linreg *LinearRegression) EoutFromFile(filename string) (float64, error) {
+
+	file, err := os.Open(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	numError := 0
+	numberOfLines := 0
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		split := strings.Split(scanner.Text(), " ")
+		var line []string
+		for _, s := range split {
+			cell := strings.Replace(s, " ", "", -1)
+			if len(cell) > 0 {
+				line = append(line, cell)
+			}
+		}
+		var oY int
+		var oX1, oX2 float64
+
+		if x1, err := strconv.ParseFloat(line[0], 64); err != nil {
+			fmt.Printf("x1 unable to parse line %d in file %s\n", numberOfLines, filename)
+			return 0, err
+		} else {
+			oX1 = x1
+		}
+		if x2, err := strconv.ParseFloat(line[1], 64); err != nil {
+			fmt.Printf("x2 unable to parse line %d in file %s\n", numberOfLines, filename)
+			return 0, err
+		} else {
+			oX2 = x2
+		}
+
+		oX := linreg.TransformFunction([]float64{float64(1), oX1, oX2})
+
+		if y, err := strconv.ParseFloat(line[2], 64); err != nil {
+			fmt.Printf("y unable to parse line %d in file %s\n", numberOfLines, filename)
+			return 0, err
+		} else {
+			oY = int(y)
+		}
+
+		gi := float64(0)
+		for j := 0; j < len(oX); j++ {
+			gi += oX[j] * linreg.Wn[j]
+		}
+		if linear.Sign(gi) != oY {
+			numError++
+		}
+		numberOfLines++
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+	return float64(numError) / float64(numberOfLines), nil
 }
 
 // CompareInSample will compare the current hypothesis function learn by linear regression whith respect to 'f'

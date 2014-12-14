@@ -46,10 +46,12 @@ func nonLinearFeature(a []float64) []float64 {
 func q2() {
 	linreg := linreg.NewLinearRegression()
 	linreg.InitializeFromFile("data/in.dta")
-	linreg.ApplyTransformation(nonLinearFeature)
+	linreg.TransformFunction = nonLinearFeature
+	linreg.ApplyTransformation()
 	linreg.Learn()
-	// ein := linreg.Ein()
-	// eout := linreg.EoutFromFile("data/out.dta")
+	ein := linreg.Ein()
+	eout, _ := linreg.EoutFromFile("data/out.dta")
+	fmt.Printf("Ein = %f, Eout = %f\n", ein, eout)
 }
 
 func main() {
