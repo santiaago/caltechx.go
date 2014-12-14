@@ -39,6 +39,7 @@ Machine learning course from caltech: [learning from data](https://work.caltech.
 * command line animations. [Pretty command line / console output on Unix in Python and Go Lang](http://www.darkcoding.net/software/pretty-command-line-console-output-on-unix-in-python-and-go-lang/)
 * refactor PLA and other functions into separate packages.
 * linear regression should have a Xn array and an Zn collection when a transformation takes place
+* add transpose function.
 
 ##thoughts:
 

@@ -52,6 +52,9 @@ func q2() {
 	ein := linreg.Ein()
 	eout, _ := linreg.EoutFromFile("data/out.dta")
 	fmt.Printf("Ein = %f, Eout = %f\n", ein, eout)
+	linreg.K = -3
+	linreg.LearnWeightDecay()
+	//eaugIn := linreg.
 }
 
 func main() {

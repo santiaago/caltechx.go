@@ -25,11 +25,14 @@ type LinearRegression struct {
 	Interval             linear.Interval   // interval  in which the points, outputs and function are defined.
 	TargetVars           linear.LinearVars // random vars of the random linear function : target function
 	TargetFunction       linear.LinearFunc // target function
-	TransformFunction    transformFunc
-	Xn                   [][]float64 // data set of random points (uniformly in interval)
-	VectorSize           int         // size of vectors Xi and Wi
-	Yn                   []int       // output, evaluation of each Xi based on linear function.
-	Wn                   []float64   // weight vector initialized at zeros.
+	TransformFunction    transformFunc     // transform function
+	Xn                   [][]float64       // data set of random points (uniformly in interval)
+	VectorSize           int               // size of vectors Xi and Wi
+	Yn                   []int             // output, evaluation of each Xi based on linear function.
+	Wn                   []float64         // weight vector initialized at zeros.
+	WReg                 []float64         //weight vector with regularization
+	Lambda               float64           // used in weight decay
+	K                    int               // used in weight decay
 }
 
 // NewLinearRegression is a constructor of a basic linear regression structure:
@@ -169,7 +172,6 @@ func (linreg *LinearRegression) Learn() {
 		XTranspose[i] = make([]float64, len(linreg.Xn))
 	}
 
-	//var XTranspose [len(linreg.Xn[0])][len(linreg.Xn)]float64
 	for i := 0; i < len(XTranspose); i++ {
 		for j := 0; j < len(XTranspose[0]); j++ {
 			XTranspose[i][j] = linreg.Xn[j][i]
@@ -191,6 +193,7 @@ func (linreg *LinearRegression) Learn() {
 	// inverse XProduct
 	mXin := matrix(XProduct)
 	Xinv := mXin.inverse()
+
 	// compute product: (X'X)^-1 X'
 	XDagger := make([][]float64, len(XProduct))
 	for i := 0; i < len(XProduct); i++ {
@@ -215,6 +218,18 @@ func (linreg *LinearRegression) setWeight(d matrix) {
 	}
 }
 
+// set Wreg
+func (linreg *LinearRegression) setWeightReg(d matrix) {
+
+	linreg.WReg = make([]float64, linreg.VectorSize)
+
+	for i := 0; i < len(d); i++ {
+		for j := 0; j < len(d[0]); j++ {
+			linreg.WReg[i] += d[i][j] * float64(linreg.Yn[j])
+		}
+	}
+}
+
 // Ein is the fraction of in sample points which got misclassified.
 func (linreg *LinearRegression) Ein() float64 {
 	// XnWn
@@ -234,6 +249,34 @@ func (linreg *LinearRegression) Ein() float64 {
 	}
 	return float64(nEin) / float64(len(gInSample))
 
+}
+
+// EAug is the fraction of in sample points which got misclassified plus the term
+// lambda / N * Sum(Wi^2)
+func (linreg *LinearRegression) EAugIn() float64 {
+	// XnWn
+	gInSample := make([]int, len(linreg.Xn))
+	for i := 0; i < len(linreg.Xn); i++ {
+		gi := float64(0)
+		for j := 0; j < len(linreg.Xn[0]); j++ {
+			gi += linreg.Xn[i][j] * linreg.WReg[j]
+		}
+		gInSample[i] = linear.Sign(gi)
+	}
+	nEin := 0
+	for i := 0; i < len(gInSample); i++ {
+		if gInSample[i] != linreg.Yn[i] {
+			nEin++
+		}
+	}
+
+	sum := float64(0)
+	for i := 0; i < len(linreg.WReg); i++ {
+		sum += math.Pow(linreg.WReg[i], 2)
+	}
+	error := (linreg.Lambda / float64(linreg.N)) * sum
+
+	return (float64(nEin) / float64(len(gInSample))) + error
 }
 
 // Eout is the fraction of out of sample points which got misclassified.
@@ -334,6 +377,133 @@ func (linreg *LinearRegression) EoutFromFile(filename string) (float64, error) {
 		log.Fatal(err)
 	}
 	return float64(numError) / float64(numberOfLines), nil
+}
+
+// Ein is the fraction of in sample points which got misclassified.
+func (linreg *LinearRegression) EAugOutFromFile(filename string) (float64, error) {
+
+	file, err := os.Open(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	numError := 0
+	numberOfLines := 0
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		split := strings.Split(scanner.Text(), " ")
+		var line []string
+		for _, s := range split {
+			cell := strings.Replace(s, " ", "", -1)
+			if len(cell) > 0 {
+				line = append(line, cell)
+			}
+		}
+		var oY int
+		var oX1, oX2 float64
+
+		if x1, err := strconv.ParseFloat(line[0], 64); err != nil {
+			fmt.Printf("x1 unable to parse line %d in file %s\n", numberOfLines, filename)
+			return 0, err
+		} else {
+			oX1 = x1
+		}
+		if x2, err := strconv.ParseFloat(line[1], 64); err != nil {
+			fmt.Printf("x2 unable to parse line %d in file %s\n", numberOfLines, filename)
+			return 0, err
+		} else {
+			oX2 = x2
+		}
+
+		oX := linreg.TransformFunction([]float64{float64(1), oX1, oX2})
+
+		if y, err := strconv.ParseFloat(line[2], 64); err != nil {
+			fmt.Printf("y unable to parse line %d in file %s\n", numberOfLines, filename)
+			return 0, err
+		} else {
+			oY = int(y)
+		}
+
+		gi := float64(0)
+		for j := 0; j < len(oX); j++ {
+			gi += oX[j] * linreg.WReg[j]
+		}
+		if linear.Sign(gi) != oY {
+			numError++
+		}
+		numberOfLines++
+	}
+
+	sum := float64(0)
+	for i := 0; i < len(linreg.WReg); i++ {
+		sum += math.Pow(linreg.WReg[i], 2)
+	}
+	error := (linreg.Lambda / float64(linreg.N)) * sum
+
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	return (float64(numError) / float64(numberOfLines)) + error, nil
+}
+
+// EReg
+// (Z'Z+λI)^−1 * Z'
+// WReg = (Z'Z + λI)^−1 Z'y
+func (linreg *LinearRegression) LearnWeightDecay() {
+	linreg.Lambda = math.Pow(10, float64(linreg.K))
+	// sum := float64(0)
+	// for i := 0; i < len(linreg.Wi); i++ {
+	// 	sum += math.Pow(linreg.Wi[i], 2)
+	// }
+	// wdc := (linreg.Lambda / float64(linreg.N)) * sum
+
+	// compute X' <=> X transpose
+	XTranspose := make([][]float64, len(linreg.Xn[0]))
+	for i := 0; i < len(linreg.Xn[0]); i++ {
+		XTranspose[i] = make([]float64, len(linreg.Xn))
+	}
+
+	for i := 0; i < len(XTranspose); i++ {
+		for j := 0; j < len(XTranspose[0]); j++ {
+			XTranspose[i][j] = linreg.Xn[j][i]
+		}
+	}
+	// compute lambda*Identity
+	lambdaIdentity := make([][]float64, len(linreg.Xn[0]))
+	for i := 0; i < len(lambdaIdentity); i++ {
+		lambdaIdentity[i] = make([]float64, len(lambdaIdentity))
+		lambdaIdentity[i][i] = float64(1) * linreg.Lambda
+	}
+
+	// compute Z'Z + lambda*I
+	sumMatrix := make([][]float64, len(lambdaIdentity))
+	for i := 0; i < len(sumMatrix); i++ {
+		sumMatrix[i] = make([]float64, len(sumMatrix))
+		for j := 0; j < len(sumMatrix); j++ {
+			sumMatrix[i][j] = XTranspose[i][j] + lambdaIdentity[i][j]
+		}
+	}
+
+	// inverse
+	toInverse := matrix(sumMatrix)
+	inverseMatrix := toInverse.inverse()
+
+	// compute product: inverseMatrix Z'
+	XDagger := make([][]float64, len(inverseMatrix))
+	for i := 0; i < len(inverseMatrix); i++ {
+		XDagger[i] = make([]float64, len(inverseMatrix[0]))
+	}
+	for k := 0; k < len(XTranspose[0]); k++ {
+		for i := 0; i < len(inverseMatrix); i++ {
+			for j := 0; j < len(inverseMatrix[0]); j++ {
+				XDagger[i][k] += inverseMatrix[i][j] * XTranspose[j][k]
+			}
+		}
+	}
+	// set WReg
+	linreg.setWeightReg(matrix(XDagger))
 }
 
 // CompareInSample will compare the current hypothesis function learn by linear regression whith respect to 'f'
