@@ -13,24 +13,27 @@ import (
 	"time"
 )
 
-type TransformFunc func(a []float64) []float64
+//type TransformFunc func(a []float64) []float64
 
 // LinearRegression holds all the information needed to run the LinearRegression algorithm.
 // Noise parameter between 0 and 1 will simulate noise by flipping the sign of the output in a random Noise%.
 type LinearRegression struct {
 	N                    int               // number of training points
+	NVal                 int               // number of examples to use in validation
 	RandomTargetFunction bool              // flag to know if target function is generated at random or defined by user.
 	TwoParams            bool              // flag to know if target function takes two parameters
 	Noise                float64           // noise should be bwtn 0 and 1 with 1 meaning all noise and 0 meaning no noise at all.
 	Interval             linear.Interval   // interval  in which the points, outputs and function are defined.
 	TargetVars           linear.LinearVars // random vars of the random linear function : target function
 	TargetFunction       linear.LinearFunc // target function
-	TransformFunction    transformFunc     // transform function
+	TransformFunction    TransformFunc     // transform function
 	Xn                   [][]float64       // data set of random points (uniformly in interval)
+	XVal                 [][]float64       // data set for validation
 	VectorSize           int               // size of vectors Xi and Wi
 	Yn                   []int             // output, evaluation of each Xi based on linear function.
+	YVal                 []int             // output, for validation
 	Wn                   []float64         // weight vector initialized at zeros.
-	WReg                 []float64         //weight vector with regularization
+	WReg                 []float64         // weight vector with regularization
 	Lambda               float64           // used in weight decay
 	K                    int               // used in weight decay
 }
@@ -102,9 +105,6 @@ func (linreg *LinearRegression) InitializeFromFile(filename string) error {
 	}
 	defer file.Close()
 
-	//linreg.Xn = make([][]float64, 0)
-	//linreg.Yn = make([]float64, 0)
-
 	scanner := bufio.NewScanner(file)
 	numberOfLines := 0
 	for scanner.Scan() {
@@ -154,6 +154,46 @@ func (linreg *LinearRegression) InitializeFromFile(filename string) error {
 	return nil
 }
 
+// InitializeFromFile reads a file with the following format:
+// x1 x2 y
+// x1 x2 y
+// x1 x2 y
+// And sets Xn and Yn accordingly
+func (linreg *LinearRegression) InitializeFromData(data [][]float64) error {
+
+	numberOfLines := 0
+	linreg.Yn = make([]int, len(data))
+	linreg.Xn = make([][]float64, len(data))
+	for i, sample := range data {
+
+		linreg.Xn[i] = make([]float64, len(sample))
+		linreg.Xn[i] = []float64{float64(1), sample[0], sample[1]}
+
+		linreg.Yn[i] = int(sample[2])
+		numberOfLines++
+	}
+
+	linreg.N = numberOfLines
+	linreg.VectorSize = len(linreg.Xn[0])
+	linreg.Wn = make([]float64, linreg.VectorSize)
+
+	return nil
+}
+
+func (linreg *LinearRegression) InitializeValidationFromData(data [][]float64) error {
+
+	linreg.YVal = make([]int, len(data))
+	linreg.XVal = make([][]float64, len(data))
+	for i, sample := range data {
+
+		linreg.XVal[i] = make([]float64, len(sample))
+		linreg.XVal[i] = []float64{float64(1), sample[0], sample[1]}
+
+		linreg.YVal[i] = int(sample[2])
+	}
+	return nil
+}
+
 func (linreg *LinearRegression) ApplyTransformation() {
 	for i := 0; i < linreg.N; i++ {
 		Xtrans := linreg.TransformFunction(linreg.Xn[i])
@@ -161,6 +201,13 @@ func (linreg *LinearRegression) ApplyTransformation() {
 	}
 	linreg.VectorSize = len(linreg.Xn[0])
 	linreg.Wn = make([]float64, linreg.VectorSize)
+}
+
+func (linreg *LinearRegression) ApplyTransformationOnValidation() {
+	for i := 0; i < linreg.N; i++ {
+		Xtrans := linreg.TransformFunction(linreg.XVal[i])
+		linreg.XVal[i] = Xtrans
+	}
 }
 
 // Learn will compute the pseudo inverse X dager and set W vector accordingly
@@ -182,7 +229,6 @@ func (linreg *LinearRegression) Learn() {
 	for i := 0; i < len(linreg.Xn[0]); i++ {
 		XProduct[i] = make([]float64, len(linreg.Xn[0]))
 	}
-	//var XProduct [len(linreg.Xn[0])][len(linreg.Xn[0])]float64
 	for k := 0; k < len(linreg.Xn[0]); k++ {
 		for i := 0; i < len(XTranspose); i++ {
 			for j := 0; j < len(XTranspose[0]); j++ {
@@ -254,7 +300,7 @@ func (linreg *LinearRegression) Ein() float64 {
 // EAug is the fraction of in sample points which got misclassified plus the term
 // lambda / N * Sum(Wi^2)
 func (linreg *LinearRegression) EAugIn() float64 {
-	// XnWn
+
 	gInSample := make([]int, len(linreg.Xn))
 	for i := 0; i < len(linreg.Xn); i++ {
 		gi := float64(0)
@@ -271,6 +317,26 @@ func (linreg *LinearRegression) EAugIn() float64 {
 	}
 
 	return float64(nEin) / float64(len(gInSample))
+}
+
+func (linreg *LinearRegression) EValIn() float64 {
+
+	gInSample := make([]int, len(linreg.XVal))
+	for i := 0; i < len(linreg.XVal); i++ {
+		gi := float64(0)
+		for j := 0; j < len(linreg.XVal[0]); j++ {
+			gi += linreg.XVal[i][j] * linreg.WReg[j]
+		}
+		gInSample[i] = linear.Sign(gi)
+	}
+	nEin := 0
+	for i := 0; i < len(gInSample); i++ {
+		if gInSample[i] != linreg.YVal[i] {
+			nEin++
+		}
+	}
+	return float64(nEin) / float64(len(gInSample))
+
 }
 
 // Eout is the fraction of out of sample points which got misclassified.
@@ -561,9 +627,9 @@ func (linreg *LinearRegression) CompareOutOfSample(f linear.LinearFunc, nParams 
 	return float64(diff) / float64(outOfSample)
 }
 
-type transformFunc func([]float64) []float64
+type TransformFunc func([]float64) []float64
 
-func (linreg *LinearRegression) TransformDataSet(f transformFunc, newSize int) {
+func (linreg *LinearRegression) TransformDataSet(f TransformFunc, newSize int) {
 	for i := 0; i < len(linreg.Xn); i++ {
 		oldXn := linreg.Xn[i]
 		newXn := f(oldXn)

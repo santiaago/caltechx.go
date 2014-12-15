@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/santiaago/caltechx.go/linear"
 	"github.com/santiaago/caltechx.go/linreg"
 	"math"
 	"runtime"
@@ -15,13 +14,6 @@ func measure(f func(), name string) {
 	f()
 	elapsed := time.Since(start)
 	fmt.Printf("%s took %4.2f seconds\n", name, elapsed.Seconds())
-}
-
-// non linear transformation
-func f(x ...float64) float64 {
-	x1 := x[0]
-	x2 := x[1]
-	return float64(linear.Sign(x1*x1 + x2*x2 - 0.6))
 }
 
 // non linear feature returns vector with form
