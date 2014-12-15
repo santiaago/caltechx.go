@@ -184,13 +184,17 @@ func (linreg *LinearRegression) InitializeValidationFromData(data [][]float64) e
 
 	linreg.YVal = make([]int, len(data))
 	linreg.XVal = make([][]float64, len(data))
+	numberOfLines := 0
 	for i, sample := range data {
 
 		linreg.XVal[i] = make([]float64, len(sample))
 		linreg.XVal[i] = []float64{float64(1), sample[0], sample[1]}
 
 		linreg.YVal[i] = int(sample[2])
+		numberOfLines++
+
 	}
+	linreg.NVal = numberOfLines
 	return nil
 }
 
@@ -204,7 +208,7 @@ func (linreg *LinearRegression) ApplyTransformation() {
 }
 
 func (linreg *LinearRegression) ApplyTransformationOnValidation() {
-	for i := 0; i < linreg.N; i++ {
+	for i := 0; i < linreg.NVal; i++ {
 		Xtrans := linreg.TransformFunction(linreg.XVal[i])
 		linreg.XVal[i] = Xtrans
 	}
@@ -325,7 +329,7 @@ func (linreg *LinearRegression) EValIn() float64 {
 	for i := 0; i < len(linreg.XVal); i++ {
 		gi := float64(0)
 		for j := 0; j < len(linreg.XVal[0]); j++ {
-			gi += linreg.XVal[i][j] * linreg.WReg[j]
+			gi += linreg.XVal[i][j] * linreg.Wn[j]
 		}
 		gInSample[i] = linear.Sign(gi)
 	}
@@ -335,8 +339,8 @@ func (linreg *LinearRegression) EValIn() float64 {
 			nEin++
 		}
 	}
-	return float64(nEin) / float64(len(gInSample))
 
+	return float64(nEin) / float64(len(gInSample))
 }
 
 // Eout is the fraction of out of sample points which got misclassified.
