@@ -40,6 +40,9 @@ Machine learning course from caltech: [learning from data](https://work.caltech.
 * refactor PLA and other functions into separate packages.
 * linear regression should have a Xn array and an Zn collection when a transformation takes place
 * add transpose function.
+* transformation function should accept array with param x0 = 1 to transform
+* better and consistent print statements.
+* catch all error and have all functions send errors.
 
 ##thoughts:
 

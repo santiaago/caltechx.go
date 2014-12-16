@@ -72,7 +72,8 @@ func getData(filename string) [][]float64 {
 
 type nonLinearTransformFunc func(x []float64) []float64
 
-// non linear transformation
+// non linear transformations
+
 func phi0(x []float64) []float64 {
 	return []float64{float64(x[0])}
 }
@@ -99,22 +100,12 @@ func phi7(x []float64) []float64 {
 }
 
 func q1() {
-	fns := []linreg.TransformFunc{
-		phi0,
-		phi1,
-		phi2,
-		phi3,
-		phi4,
-		phi5,
-		phi6,
-		phi7,
-	}
+	fns := []linreg.TransformFunc{phi0, phi1, phi2, phi3, phi4, phi5, phi6, phi7}
 
 	ks := []int{3, 4, 5, 6, 7}
 
 	data := getData("data/in.dta")
 	for _, k := range ks {
-		fmt.Println(k)
 		linreg := linreg.NewLinearRegression()
 
 		linreg.InitializeFromData(data[:25])
@@ -125,8 +116,14 @@ func q1() {
 		linreg.ApplyTransformation()
 		linreg.ApplyTransformationOnValidation()
 		linreg.Learn()
+		eIn := linreg.Ein()
 		eVal := linreg.EValIn()
+		eOut, _ := linreg.EoutFromFile("data/out.dta")
+
 		fmt.Printf("EVal = %f, for k = %d\n", eVal, k)
+		fmt.Printf("EIn = %f, for k = %d\n", eIn, k)
+		fmt.Printf("EOut = %f, for k = %d\n", eOut, k)
+		fmt.Println()
 	}
 }
 
