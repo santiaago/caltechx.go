@@ -127,6 +127,34 @@ func q1() {
 	}
 }
 
+func q3() {
+	fns := []linreg.TransformFunc{phi0, phi1, phi2, phi3, phi4, phi5, phi6, phi7}
+
+	ks := []int{3, 4, 5, 6, 7}
+
+	data := getData("data/in.dta")
+	for _, k := range ks {
+		linreg := linreg.NewLinearRegression()
+
+		linreg.InitializeFromData(data[25:])
+		linreg.InitializeValidationFromData(data[:25])
+
+		linreg.TransformFunction = fns[k]
+
+		linreg.ApplyTransformation()
+		linreg.ApplyTransformationOnValidation()
+		linreg.Learn()
+		eIn := linreg.Ein()
+		eVal := linreg.EValIn()
+		eOut, _ := linreg.EoutFromFile("data/out.dta")
+
+		fmt.Printf("EVal = %f, for k = %d\n", eVal, k)
+		fmt.Printf("EIn = %f, for k = %d\n", eIn, k)
+		fmt.Printf("EOut = %f, for k = %d\n", eOut, k)
+		fmt.Println()
+	}
+}
+
 func main() {
 	fmt.Println("Num CPU: ", runtime.NumCPU())
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -135,6 +163,7 @@ func main() {
 	measure(q1, "q1")
 	fmt.Println("2")
 	fmt.Println("3")
+	measure(q3, "q3")
 	fmt.Println("4")
 	fmt.Println("5")
 	fmt.Println("6")
