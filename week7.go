@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/santiaago/caltechx.go/linear"
 	"github.com/santiaago/caltechx.go/linreg"
 	"log"
 	"math"
@@ -155,6 +156,30 @@ func q3() {
 	}
 }
 
+func min(a, b float64) float64 {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func q6() {
+	runs := float64(10000)
+	interval1 := linear.Interval{0, 1}
+	interval2 := linear.Interval{0, 1}
+
+	sumE1 := float64(0)
+	sumE2 := float64(0)
+	sumE := float64(0)
+	for i := 0; i < int(runs); i++ {
+		e1 := interval1.RandFloat()
+		e2 := interval2.RandFloat()
+		sumE1 += e1
+		sumE2 += e2
+		sumE += min(e1, e2)
+	}
+	fmt.Printf("e1 = %f, e2 = %f, e = %f\n", sumE1/runs, sumE2/runs, sumE/runs)
+}
 func main() {
 	fmt.Println("Num CPU: ", runtime.NumCPU())
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -167,6 +192,7 @@ func main() {
 	fmt.Println("4")
 	fmt.Println("5")
 	fmt.Println("6")
+	measure(q6, "q6")
 	fmt.Println("7")
 	fmt.Println("8")
 	fmt.Println("9")
