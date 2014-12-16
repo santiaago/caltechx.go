@@ -180,6 +180,34 @@ func q6() {
 	}
 	fmt.Printf("e1 = %f, e2 = %f, e = %f\n", sumE1/runs, sumE2/runs, sumE/runs)
 }
+
+// this formula is specific to data points:
+// (-1, 0), (rho, 1), (1, 0)
+// by using leave one out cross validation with squared error measure
+func crossValidationErrorForLinearModel(rho float64) float64 {
+	return (float64(1) +
+		(float64(4) / math.Pow(rho-float64(1), 2)) +
+		(float64(4) / math.Pow(rho+float64(1), 2))) / float64(3)
+}
+
+func crossValidationErrorForConstantModel(rho float64) float64 {
+	return (0.25 + 0.25 + 1.0) / float64(3)
+}
+
+func q7() {
+	a := math.Sqrt(math.Sqrt(3) + float64(4))
+	b := math.Sqrt(math.Sqrt(3) + float64(1))
+	c := math.Sqrt(float64(9) + float64(4)*math.Sqrt(6))
+	d := math.Sqrt(float64(9) - math.Sqrt(6))
+	rhos := []float64{a, b, c, d}
+
+	for i := 0; i < len(rhos); i++ {
+		if crossValidationErrorForLinearModel(rhos[i]) == crossValidationErrorForConstantModel(rhos[i]) {
+			fmt.Printf("for rho[%d] = %f, the two models are tied", i, rhos[i])
+		}
+	}
+}
+
 func main() {
 	fmt.Println("Num CPU: ", runtime.NumCPU())
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -194,6 +222,7 @@ func main() {
 	fmt.Println("6")
 	measure(q6, "q6")
 	fmt.Println("7")
+	measure(q7, "q7")
 	fmt.Println("8")
 	fmt.Println("9")
 	fmt.Println("10")
