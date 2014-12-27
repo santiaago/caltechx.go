@@ -1,7 +1,7 @@
 caltechx.go
 ===========
 
-The is a [golang](http://golang.org) version of the Machine learning course from caltech: [Learning from data](https://work.caltech.edu/telecourse.html).
+This is a [golang](http://golang.org) version of the Machine learning course from caltech: [Learning from data](https://work.caltech.edu/telecourse.html).
 
 * **week 1:**
     * PLA (Perceptron learning Algorithm)
