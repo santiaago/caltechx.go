@@ -101,7 +101,7 @@ Tests will be slow as they are running the homeworks whom typically have to run 
     ├── week6
     │   └── week6.go
     └── week7
-    └── week7.go
+        └── week7.go
 
 
 
