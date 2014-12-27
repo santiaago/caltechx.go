@@ -15,4 +15,14 @@ func TestQ7(t *testing.T) {
 }
 
 func TestQ9(t *testing.T) {
+	exp := week1Q9()
+	gotIterations := exp.avgIterations()
+	if gotIterations > 115 || gotIterations < 90 {
+		t.Errorf("wee1Q9(): avgIterations == %s, want value in interval [90 : 115]", gotIterations)
+	}
+	gotDisagreement := exp.avgDisagreement()
+	if gotDisagreement > 0.02 || gotDisagreement < 0.001 {
+		t.Errorf("wee1Q9(): avgDisagreement == %s, want value in interval [0.001 : 0.02]", gotIterations)
+	}
+
 }
