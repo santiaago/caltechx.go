@@ -1,4 +1,4 @@
-package main
+package week1
 
 import (
 	"fmt"
@@ -42,7 +42,7 @@ func measure(f func() experiment, name string) {
 
 // Take N = 10. How many iterations does it take on average for the PLA to
 // converge for N = 10 training points?
-func week1Q7() experiment {
+func q7() experiment {
 	exp := experiment{NRuns: 1000, NPoints: 10}
 	pla := pla.NewPLA()
 
@@ -56,7 +56,7 @@ func week1Q7() experiment {
 	return exp
 }
 
-func week1Q7cc() experiment {
+func q7cc() experiment {
 	exp := experiment{NRuns: 1000, NPoints: 10}
 	pla := pla.NewPLA()
 
@@ -82,7 +82,7 @@ func week1Q7cc() experiment {
 	return exp
 }
 
-func week1Q9() experiment {
+func q9() experiment {
 	exp := experiment{NRuns: 1000, NPoints: 100}
 	pla := pla.NewPLA()
 
@@ -97,7 +97,7 @@ func week1Q9() experiment {
 	return exp
 }
 
-func week1Q9cc() experiment {
+func q9cc() experiment {
 	exp := experiment{NRuns: 1000, NPoints: 100}
 	pla := pla.NewPLA()
 
@@ -136,11 +136,11 @@ func main() {
 	fmt.Println("5")
 	fmt.Println("6")
 	fmt.Println("7")
-	measure(week1Q7, "q7")
-	measure(week1Q7cc, "q7 concurrent")
+	measure(q7, "q7")
+	measure(q7cc, "q7 concurrent")
 	fmt.Println("8")
 	fmt.Println("9")
-	measure(week1Q9, "q9")
-	measure(week1Q9cc, "q9 concurrent")
+	measure(q9, "q9")
+	measure(q9cc, "q9 concurrent")
 	fmt.Println("10")
 }
