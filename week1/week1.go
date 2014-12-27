@@ -24,8 +24,16 @@ func (exp *experiment) print() {
 	fmt.Printf("average of disagreement between the hypothesis function and the random function for N=%v is %4.2f\n", exp.NPoints, avgDisagreement)
 }
 
+func (exp *experiment) avgIterations() int {
+	return exp.SumOfIterations / exp.NRuns
+}
+
+func (exp *experiment) avgDisagreement() float64 {
+	return exp.SumOfDisagreement / float64(exp.NRuns)
+}
+
 // measure will measure the time taken by function f to run and display it.
-func measure(f func(), name string) {
+func measure(f func() experiment, name string) {
 	start := time.Now()
 	f()
 	elapsed := time.Since(start)
@@ -34,7 +42,7 @@ func measure(f func(), name string) {
 
 // Take N = 10. How many iterations does it take on average for the PLA to
 // converge for N = 10 training points?
-func q7() {
+func week1Q7() experiment {
 	exp := experiment{NRuns: 1000, NPoints: 10}
 	pla := pla.NewPLA()
 
@@ -45,9 +53,10 @@ func q7() {
 		exp.SumOfIterations += iterations
 	}
 	exp.print()
+	return exp
 }
 
-func q7cc() {
+func week1Q7cc() experiment {
 	exp := experiment{NRuns: 1000, NPoints: 10}
 	pla := pla.NewPLA()
 
@@ -70,9 +79,10 @@ func q7cc() {
 	}
 
 	exp.print()
+	return exp
 }
 
-func q9() {
+func week1Q9() experiment {
 	exp := experiment{NRuns: 1000, NPoints: 100}
 	pla := pla.NewPLA()
 
@@ -84,9 +94,10 @@ func q9() {
 		exp.SumOfIterations += iterations
 	}
 	exp.print()
+	return exp
 }
 
-func q9cc() {
+func week1Q9cc() experiment {
 	exp := experiment{NRuns: 1000, NPoints: 100}
 	pla := pla.NewPLA()
 
@@ -111,6 +122,7 @@ func q9cc() {
 	}
 
 	exp.print()
+	return exp
 }
 
 func main() {
@@ -123,12 +135,12 @@ func main() {
 	fmt.Println("4")
 	fmt.Println("5")
 	fmt.Println("6")
-	measure(q7, "q7")
-	measure(q7cc, "q7 concurrent")
 	fmt.Println("7")
+	measure(week1Q7, "q7")
+	measure(week1Q7cc, "q7 concurrent")
 	fmt.Println("8")
-	measure(q9, "q9")
-	measure(q9cc, "q9 concurrent")
 	fmt.Println("9")
+	measure(week1Q9, "q9")
+	measure(week1Q9cc, "q9 concurrent")
 	fmt.Println("10")
 }
