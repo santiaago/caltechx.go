@@ -1,7 +1,7 @@
 caltechx.go
 ===========
 
-Machine learning course from caltech: [learning from data](https://work.caltech.edu/telecourse.html) done in [go](http://golang.org)
+The is a [golang](http://golang.org) version of the Machine learning course from caltech: [Learning from data](https://work.caltech.edu/telecourse.html).
 
 * **week 1:**
     * PLA (Perceptron learning Algorithm)
@@ -32,8 +32,17 @@ Machine learning course from caltech: [learning from data](https://work.caltech.
     * Cross Validation
     * RBF Kernel
 
+##Build:
+There is a specific file `week<x>.go` for the work of each week (1 to 8). To build it run the following command where `x = 1`
 
-##todo:
+    go build week1.go
+##Run:
+Similarly you can run the work of a specific week as follows:
+
+    ./week1
+
+
+##Todo:
 * refactor
 * concurrent runs.
 * command line animations. [Pretty command line / console output on Unix in Python and Go Lang](http://www.darkcoding.net/software/pretty-command-line-console-output-on-unix-in-python-and-go-lang/)
@@ -43,10 +52,11 @@ Machine learning course from caltech: [learning from data](https://work.caltech.
 * transformation function should accept array with param x0 = 1 to transform
 * better and consistent print statements.
 * catch all error and have all functions send errors.
+* add tests
 
-##thoughts:
+##Thoughts:
 
-It is better to divide the packages based on *models* and *methods*.
+It might be better to divide the packages based on *models* and *methods*.
 Here is how the topics are presented in the learning from data web page:
 [topics](http://work.caltech.edu/library/)
 
