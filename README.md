@@ -42,7 +42,7 @@ Similarly you can run the work of a specific week as follows:
     week1
 
 ##Test:
-    Tests will be slow as they are running the homeworks whom typically have to run multiple "runs" (1000 or more runs) and compute an average.
+Tests will be slow as they are running the homeworks whom typically have to run multiple "runs" (1000 or more runs) and compute an average.
 
     go test ./week1
 
