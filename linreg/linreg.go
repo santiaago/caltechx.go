@@ -3,7 +3,6 @@ package linreg
 import (
 	"bufio"
 	"fmt"
-	"github.com/santiaago/caltechx.go/linear"
 	"log"
 	"math"
 	"math/rand"
@@ -11,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/santiaago/caltechx.go/linear"
 )
 
 //type TransformFunc func(a []float64) []float64
@@ -167,9 +168,10 @@ func (linreg *LinearRegression) InitializeFromData(data [][]float64) error {
 	for i, sample := range data {
 
 		linreg.Xn[i] = make([]float64, len(sample))
-		linreg.Xn[i] = []float64{float64(1), sample[0], sample[1]}
+		linreg.Xn[i] = []float64{float64(1)}
+		linreg.Xn[i] = append(linreg.Xn[i], sample[:len(sample)-1]...)
 
-		linreg.Yn[i] = int(sample[2])
+		linreg.Yn[i] = int(sample[len(sample)-1])
 		numberOfLines++
 	}
 
