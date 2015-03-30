@@ -19,6 +19,7 @@ import (
 // LinearRegression holds all the information needed to run the LinearRegression algorithm.
 // Noise parameter between 0 and 1 will simulate noise by flipping the sign of the output in a random Noise%.
 type LinearRegression struct {
+	Name                 string            // discribes what this linear regression does. Empty by default
 	N                    int               // number of training points
 	NVal                 int               // number of examples to use in validation
 	RandomTargetFunction bool              // flag to know if target function is generated at random or defined by user.
@@ -155,7 +156,7 @@ func (linreg *LinearRegression) InitializeFromFile(filename string) error {
 	return nil
 }
 
-// InitializeFromFile reads a file with the following format:
+// InitializeFromData reads a file with the following format:
 // x1 x2 y
 // x1 x2 y
 // x1 x2 y
