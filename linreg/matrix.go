@@ -7,6 +7,16 @@ import (
 
 type matrix [][]float64
 
+func (pm *matrix) print() {
+	m := *pm
+	for i := 0; i < len(m); i++ {
+		for j := 0; j < len(m[i]); j++ {
+			fmt.Printf("%4.2f\t", m[i][j])
+		}
+		fmt.Println()
+	}
+}
+
 func (pm *matrix) inverse() matrix {
 	m := *pm
 	n := len(m)
