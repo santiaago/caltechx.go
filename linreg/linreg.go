@@ -29,6 +29,7 @@ type LinearRegression struct {
 	TargetVars           linear.LinearVars // random vars of the random linear function : target function
 	TargetFunction       linear.LinearFunc // target function
 	TransformFunction    TransformFunc     // transform function
+	UsesTranformFunction bool              // determines if linear regression used transform function.
 	Xn                   [][]float64       // data set of random points (uniformly in interval)
 	XVal                 [][]float64       // data set for validation
 	VectorSize           int               // size of vectors Xi and Wi
@@ -202,6 +203,8 @@ func (linreg *LinearRegression) InitializeValidationFromData(data [][]float64) e
 }
 
 func (linreg *LinearRegression) ApplyTransformation() {
+	linreg.UsesTranformFunction = true
+
 	for i := 0; i < linreg.N; i++ {
 		Xtrans := linreg.TransformFunction(linreg.Xn[i])
 		linreg.Xn[i] = Xtrans
@@ -388,6 +391,8 @@ func (linreg *LinearRegression) Eout() float64 {
 	return float64(numError) / float64(outOfSample)
 }
 
+// EoutFromFile only supports linear regressions with transformed data.
+// todo:(santiaago) make this more generic.
 func (linreg *LinearRegression) EoutFromFile(filename string) (float64, error) {
 
 	file, err := os.Open(filename)
