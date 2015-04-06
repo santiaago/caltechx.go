@@ -28,8 +28,10 @@ func (pm *matrix) inverse() (matrix, error) {
 	for i := 0; i < n; i++ {
 		x[i] = make([]float64, n)
 	}
-	LU, p := LUPDecomposition(m)
-
+	LU, p, err := LUPDecomposition(m)
+	if err != nil {
+		return nil, err
+	}
 	// Solve AX = e for each column ei of the identity matrix using LUP decomposition
 	for i := 0; i < n; i++ {
 		e := make([]float64, n)
@@ -78,7 +80,7 @@ func LUPSolve(LU matrix, pi []int, b []float64) []float64 {
 // In order to make some of the calculations more straight forward and to
 // match Cormen's et al. pseudocode the matrix A should have its first row and first columns
 // to be all 0.
-func LUPDecomposition(A matrix) (matrix, []int) {
+func LUPDecomposition(A matrix) (matrix, []int, error) {
 
 	n := len(A)
 	// pi is the permutation matrix.
@@ -102,8 +104,7 @@ func LUPDecomposition(A matrix) (matrix, []int) {
 			}
 		}
 		if p == 0 {
-			fmt.Println("Panic: singular matrix")
-			panic(A)
+			return nil, nil, errors.New("Panic: singular matrix")
 		}
 
 		pik = pi[k]
@@ -125,5 +126,5 @@ func LUPDecomposition(A matrix) (matrix, []int) {
 			}
 		}
 	}
-	return A, pi
+	return A, pi, nil
 }
