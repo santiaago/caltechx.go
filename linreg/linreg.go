@@ -219,7 +219,7 @@ func (linreg *LinearRegression) ApplyTransformationOnValidation() {
 
 // Learn will compute the pseudo inverse X dager and set W vector accordingly
 // Xdager = (X'X)^-1 X'
-func (linreg *LinearRegression) Learn() {
+func (linreg *LinearRegression) Learn() error {
 	// compute X' <=> X transpose
 	XTranspose := make([][]float64, len(linreg.Xn[0]))
 	for i := 0; i < len(linreg.Xn[0]); i++ {
@@ -245,8 +245,10 @@ func (linreg *LinearRegression) Learn() {
 	}
 	// inverse XProduct
 	mXin := matrix(XProduct)
-	Xinv := mXin.inverse()
-
+	Xinv, err := mXin.inverse()
+	if err != nil {
+		return err
+	}
 	// compute product: (X'X)^-1 X'
 	XDagger := make([][]float64, len(XProduct))
 	for i := 0; i < len(XProduct); i++ {
@@ -260,6 +262,7 @@ func (linreg *LinearRegression) Learn() {
 		}
 	}
 	linreg.setWeight(matrix(XDagger))
+	return nil
 }
 
 func (linreg *LinearRegression) setWeight(d matrix) {
@@ -508,7 +511,7 @@ func (linreg *LinearRegression) EAugOutFromFile(filename string) (float64, error
 // EReg
 // (Z'Z+λI)^−1 * Z'
 // WReg = (Z'Z + λI)^−1 Z'y
-func (linreg *LinearRegression) LearnWeightDecay() {
+func (linreg *LinearRegression) LearnWeightDecay() error {
 	linreg.Lambda = math.Pow(10, float64(linreg.K))
 
 	// compute X' <=> X transpose
@@ -554,8 +557,10 @@ func (linreg *LinearRegression) LearnWeightDecay() {
 
 	// inverse
 	toInverse := matrix(sumMatrix)
-	inverseMatrix := toInverse.inverse()
-
+	inverseMatrix, err := toInverse.inverse()
+	if err != nil {
+		return err
+	}
 	// compute product: inverseMatrix Z'
 	XDagger := make([][]float64, len(sumMatrix))
 	for i := 0; i < len(inverseMatrix); i++ {
@@ -571,6 +576,7 @@ func (linreg *LinearRegression) LearnWeightDecay() {
 	}
 	// set WReg
 	linreg.setWeightReg(matrix(XDagger))
+	return nil
 }
 
 // CompareInSample will compare the current hypothesis function learn by linear regression whith respect to 'f'

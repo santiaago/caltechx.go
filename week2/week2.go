@@ -2,14 +2,15 @@ package main
 
 import (
 	"fmt"
-	"github.com/santiaago/caltechx.go/linear"
-	"github.com/santiaago/caltechx.go/linreg"
-	"github.com/santiaago/caltechx.go/pla"
 	"math"
 	"math/rand"
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/santiaago/caltechx.go/linear"
+	"github.com/santiaago/caltechx.go/linreg"
+	"github.com/santiaago/caltechx.go/pla"
 )
 
 func sum(a []int) int {

@@ -1,6 +1,7 @@
 package linreg
 
 import (
+	"errors"
 	"fmt"
 	"math"
 )
@@ -17,12 +18,11 @@ func (pm *matrix) print() {
 	}
 }
 
-func (pm *matrix) inverse() matrix {
+func (pm *matrix) inverse() (matrix, error) {
 	m := *pm
 	n := len(m)
 	if n != len(m[0]) {
-		fmt.Println("Panic: matrix should be square")
-		panic(m)
+		return nil, errors.New("Panic: matrix should be square")
 	}
 	x := make([][]float64, n) // inverse matrix to return
 	for i := 0; i < n; i++ {
@@ -39,7 +39,7 @@ func (pm *matrix) inverse() matrix {
 			x[j][i] = solve[j]
 		}
 	}
-	return x
+	return x, nil
 }
 
 func LUPSolve(LU matrix, pi []int, b []float64) []float64 {
