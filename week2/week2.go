@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/santiaago/caltechx.go/linear"
 	"github.com/santiaago/caltechx.go/linreg"
 	"github.com/santiaago/caltechx.go/pla"
+	"github.com/santiaago/ml"
 )
 
 func sum(a []int) int {
@@ -169,7 +169,7 @@ func q7() {
 func f(x ...float64) float64 {
 	x1 := x[0]
 	x2 := x[1]
-	return float64(linear.Sign(x1*x1 + x2*x2 - 0.6))
+	return ml.Sign(x1*x1 + x2*x2 - 0.6)
 }
 
 func q8() {
@@ -212,31 +212,31 @@ func nonLinearFeature(a []float64) []float64 {
 func a(x ...float64) float64 {
 	x1 := x[0]
 	x2 := x[1]
-	return float64(linear.Sign(-1 - 0.05*x1 + 0.08*x2 + 0.13*x1*x2 + 1.5*x1*x1 + 1.5*x2*x2))
+	return ml.Sign(-1 - 0.05*x1 + 0.08*x2 + 0.13*x1*x2 + 1.5*x1*x1 + 1.5*x2*x2)
 }
 
 func b(x ...float64) float64 {
 	x1 := x[0]
 	x2 := x[1]
-	return float64(linear.Sign(-1 - 0.05*x1 + 0.08*x2 + 0.13*x1*x2 + 1.5*x1*x1 + 15*x2*x2))
+	return ml.Sign(-1 - 0.05*x1 + 0.08*x2 + 0.13*x1*x2 + 1.5*x1*x1 + 15*x2*x2)
 }
 
 func c(x ...float64) float64 {
 	x1 := x[0]
 	x2 := x[1]
-	return float64(linear.Sign(-1 - 0.05*x1 + 0.08*x2 + 0.13*x1*x2 + 15*x1*x1 + 1.5*x2*x2))
+	return ml.Sign(-1 - 0.05*x1 + 0.08*x2 + 0.13*x1*x2 + 15*x1*x1 + 1.5*x2*x2)
 }
 
 func d(x ...float64) float64 {
 	x1 := x[0]
 	x2 := x[1]
-	return float64(linear.Sign(-1 - 1.5*x1 + 0.08*x2 + 0.13*x1*x2 + 0.05*x1*x1 + 0.05*x2*x2))
+	return ml.Sign(-1 - 1.5*x1 + 0.08*x2 + 0.13*x1*x2 + 0.05*x1*x1 + 0.05*x2*x2)
 }
 
 func e(x ...float64) float64 {
 	x1 := x[0]
 	x2 := x[1]
-	return float64(linear.Sign(-1 - 0.05*x1 + 0.08*x2 + 1.5*x1*x2 + 0.15*x1*x1 + 0.15*x2*x2))
+	return ml.Sign(-1 - 0.05*x1 + 0.08*x2 + 1.5*x1*x2 + 0.15*x1*x1 + 0.15*x2*x2)
 }
 
 func q9() {
