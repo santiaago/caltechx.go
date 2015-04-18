@@ -3,8 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/santiaago/caltechx.go/linear"
-	"github.com/santiaago/caltechx.go/linreg"
 	"log"
 	"math"
 	"os"
@@ -12,6 +10,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/santiaago/caltechx.go/linreg"
+	"github.com/santiaago/ml/linear"
 )
 
 // measure will measure the time taken by function f to run and display it.
@@ -165,8 +166,8 @@ func min(a, b float64) float64 {
 
 func q6() {
 	runs := float64(10000)
-	interval1 := linear.Interval{0, 1}
-	interval2 := linear.Interval{0, 1}
+	interval1 := linear.NewInterval(0, 1)
+	interval2 := linear.NewInterval(0, 1)
 
 	sumE1 := float64(0)
 	sumE2 := float64(0)
