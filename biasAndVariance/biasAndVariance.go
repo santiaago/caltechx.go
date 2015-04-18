@@ -2,17 +2,18 @@ package biasAndVariance
 
 import (
 	"fmt"
-	"github.com/santiaago/caltechx.go/linear"
 	"math"
+
+	"github.com/santiaago/ml/linear"
 )
 
 type GFunc func(x float64) float64
 
 type BiasAndVariance struct {
-	Interval            linear.Interval   // interval in which the target function is defined.
-	TargetFunction      linear.LinearFunc // target function.
-	TrainingExampleSize int               // number of training examples of the training set.
-	Runs                int               // number of runs that should be used to learn.
+	Interval            linear.Interval // interval in which the target function is defined.
+	TargetFunction      linear.Function // target function.
+	TrainingExampleSize int             // number of training examples of the training set.
+	Runs                int             // number of runs that should be used to learn.
 	Bias                float64
 	Variance            float64
 	Slope               float64
@@ -22,10 +23,10 @@ type BiasAndVariance struct {
 
 func NewBiasAndVariance() *BiasAndVariance {
 	bav := BiasAndVariance{}
-	bav.Interval = linear.Interval{-1, 1}
+	bav.Interval = linear.NewInterval(float64(-1), float64(1))
 	bav.Runs = 1000
-	bav.TargetFunction = func(x ...float64) float64 {
-		return math.Sin(math.Pi * x[0])
+	bav.TargetFunction = func(x float64) float64 {
+		return math.Sin(math.Pi * x)
 	}
 	bav.TrainingExampleSize = 2
 	bav.ThroughOrigin = true
